@@ -1,0 +1,40 @@
+package com.pricealert.scraping;
+
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import java.io.IOException;
+
+public class Scraper {
+
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0";
+
+    private final String url;
+
+    public Scraper(String url) {
+        this.url = url;
+    }
+
+    public String getPrice() {
+        Document html;
+
+        try {
+            html = getDocument(url);
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return html.select("#priceblock_ourprice").text();
+    }
+
+    private static Document getDocument(String url) throws IOException {
+        return Jsoup.connect(url).get();
+    }
+
+    private static Connection getConnection(String url) {
+        return Jsoup.connect(url).maxBodySize(0).userAgent(USER_AGENT);
+    }
+}
