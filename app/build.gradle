@@ -39,7 +39,7 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'org.jsoup:jsoup:1.8.1'
+    compile 'org.slf4j:slf4j-android:1.7.10'
     compile project(':Scraping')
     compile 'com.android.support:appcompat-v7:21.+'
 }

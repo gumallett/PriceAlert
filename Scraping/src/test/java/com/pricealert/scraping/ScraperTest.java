@@ -13,6 +13,6 @@ public class ScraperTest {
     public void canDownloadAndParseHtmlPage() {
         Scraper scraper = new Scraper("http://www.amazon.com/XFX-Double-947MHz-Graphics-R9290AEDFD/dp/B00HHIPM5Q/ref=sr_1_4?ie=UTF8&qid=1424101836&sr=8-4&keywords=R290");
 
-        assertEquals(scraper.getPrice(), "$299.99");
+        assertEquals("$279.99", scraper.getPrice());
     }
 }
