@@ -16,25 +16,32 @@ public class Scraper {
         this.url = url;
     }
 
-    public String getPrice() {
-        Document html;
-
-        try {
-            html = getDocument(url);
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        return html.select("#priceblock_ourprice").text();
+    public ScraperResponse connect() throws IOException {
+        Document html = getDocument(url);
+        return new ScraperResponse(html);
     }
 
     private static Document getDocument(String url) throws IOException {
-        return Jsoup.connect(url).get();
+        return getConnection(url).get();
     }
 
     private static Connection getConnection(String url) {
         return Jsoup.connect(url).maxBodySize(0).userAgent(USER_AGENT);
+    }
+
+    public static class ScraperResponse {
+        private Document html;
+
+        public ScraperResponse(Document html) {
+            this.html = html;
+        }
+
+        public String getPrice() {
+            return html.select("#priceblock_ourprice").text();
+        }
+
+        public String getProductTitle() {
+            return html.select("#productTitle").text();
+        }
     }
 }

@@ -26,7 +26,9 @@ public class YQLTemplate {
     }
 
     public YQLResponse cssQuery(YQLCSSQuery query) {
-        String urlString = yqlUrl + query.toString();
+        LOG.info("Query: {}", query.toString());
+
+        String urlString = yqlUrl + query.toEncodedString();
 
         LOG.info("about to run yql query: {}", urlString);
 

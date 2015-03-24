@@ -49,8 +49,12 @@ public class YQLCSSQuery {
             }
         }
 
+        return String.format("SELECT * FROM data.html.cssselect WHERE url='%s' AND (%s)", getUrl(), builder.toString());
+    }
+
+    public String toEncodedString() {
         try {
-            return URLEncoder.encode(String.format("SELECT * FROM data.html.cssselect WHERE url='%s' AND (%s)", getUrl(), builder.toString()), "UTF-8");
+            return URLEncoder.encode(toString(), "UTF-8");
         }
         catch(UnsupportedEncodingException e) {
             LOG.error(e.getMessage(), e);
