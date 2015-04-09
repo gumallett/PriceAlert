@@ -11,12 +11,14 @@
     <TextView
             android:text="New Low Price For: (Item name here)"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/hello"/>
+            android:layout_height="wrap_content" android:id="@+id/hello"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Price is: (insert price)"
+        android:text="New Price is: (insert price pulled from Amazon)"
         android:id="@+id/textView"
         android:layout_below="@+id/hello"
         android:layout_alignParentLeft="true"
@@ -30,5 +32,36 @@
         android:id="@+id/button"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set Target Low Price"
+        android:id="@+id/textView2"
+        android:layout_above="@+id/button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="86dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:ems="10"
+        android:id="@+id/editText"
+        android:layout_alignBottom="@+id/textView2"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:text="*price*" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Last low price was on: (date of price)"
+        android:id="@+id/textView3"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="26dp" />
 
 </RelativeLayout>
