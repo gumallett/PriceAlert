@@ -96,4 +96,16 @@
         android:layout_alignStart="@+id/editText"
         android:text="* % off price*" />
 
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText3"
+        android:layout_marginBottom="34dp"
+        android:text="URL of Product"
+        android:layout_above="@+id/editText"
+        android:layout_alignLeft="@+id/button"
+        android:layout_alignStart="@+id/button"
+        android:layout_marginLeft="29dp"
+        android:layout_marginStart="29dp" />
+
 </RelativeLayout>
