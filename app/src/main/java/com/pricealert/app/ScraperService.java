@@ -37,7 +37,12 @@ public class ScraperService extends IntentService {
 
         Log.d(ScraperService.class.getSimpleName(), "Scraping url: " + url);
         Scraper scraper = new Scraper(url.toString());
-        Log.d(ScraperReceiver.class.getSimpleName(), "Scraping complete: " + scraper.getPrice());
+        try {
+            Log.d(ScraperReceiver.class.getSimpleName(), "Scraping complete: " + scraper.connect().getPrice());
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+        }
 
         //database code here
 
