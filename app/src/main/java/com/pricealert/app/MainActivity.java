@@ -9,10 +9,16 @@ import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import com.pricealert.data.RecentPricesDb;
+import com.pricealert.data.model.Product;
+import com.pricealert.data.model.ProductTarget;
 import com.pricealert.scraping.Scraper;
+
+import java.util.List;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -34,13 +40,6 @@ public class MainActivity extends ActionBarActivity {
         intent.setData(testingUri);
 
         startService(intent);*/
-
-        Intent newIntent = new Intent(this, ScraperReceiver.class);
-        newIntent.setData(testingUri);
-        long scTime = 60*1000;
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, newIntent, 0);
-        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + scTime, pendingIntent);
     }
 
     @Override
@@ -65,5 +64,28 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void setAlarm(Uri uri) {
+        Intent newIntent = new Intent(this, ScraperReceiver.class);
+        newIntent.setData(uri);
+        long scTime = 60*1000;
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, newIntent, 0);
+        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + scTime, pendingIntent);
+    }
 
+    private void testQueries() {
+        Product product = new Product();
+        product.setName("XFX Double D");
+        product.setUrl("http://www.amazon.com/XFX-Double-947MHz-Graphics-R9290AEDFD/dp/B00HHIPM5Q/");
+
+        ProductTarget target = new ProductTarget();
+        target.setTargetValue(250.99);
+        product.setTargets(target);
+
+        RecentPricesDb recentPricesDb = new RecentPricesDb(this);
+        recentPricesDb.saveProduct(product);
+
+        List<Product> productList = recentPricesDb.selectProductDetails();
+        Log.d(MainActivity.class.getSimpleName(), productList.toString());
+    }
 }

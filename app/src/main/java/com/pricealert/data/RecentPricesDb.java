@@ -20,12 +20,12 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final int VERSION = 1;
 
     private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, ph.price as ph_price, ph.update_date as ph_update_date, t.target_val as t_target_val, t.target_percent as t_target_pct " +
-            "from products p join price_history ph on ph.product_id=p.id join targets t on t.product_id=p.id " +
+            "from products p join targets t on t.product_id=p.id left join price_history ph on ph.product_id=p.id " +
             "order by p_create_date desc, ph_update_date desc;";
 
-    private static final String PRODUCT_INSERT_SQL = "insert into products (url, product_name, create_date) values (?, ?, datetime('now'));";
+    private static final String PRODUCT_INSERT_SQL = "insert into products (url, product_name, create_date) values (?, ?, ?);";
     private static final String PRODUCT_TARGETS_INSERT_SQL = "insert into targets (product_id, target_val, target_percent) values (?, ?, ?);";
-    private static final String PRODUCT_HISTORY_INSERT_SQL = "insert into price_history (product_id, price, update_date) values (?, ?, datetime('now'));";
+    private static final String PRODUCT_HISTORY_INSERT_SQL = "insert into price_history (product_id, price, update_date) values (?, ?, ?);";
 
     public RecentPricesDb(Context context) {
         super(context, DB_NAME, null, VERSION);
@@ -50,7 +50,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         List<Product> results = new ArrayList<Product>();
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 
-        Log.d(RecentPricesDb.class.getSimpleName(), "Querying for recent quotes...");
+        Log.d(RecentPricesDb.class.getSimpleName(), "Querying for products...");
 
         String sql = PRODUCT_DETAILS_SQL;
         Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
@@ -60,9 +60,14 @@ public class RecentPricesDb extends SQLiteOpenHelper {
             product.setId(cursor.getLong(cursor.getColumnIndex("p_id")));
             product.setUrl(cursor.getString(cursor.getColumnIndex("p_url")));
             product.setName(cursor.getString(cursor.getColumnIndex("p_product_name")));
-            product.setCreateDate(new Date(cursor.getLong(cursor.getColumnIndex("p_create_date"))));
+            product.setCreateDate(new Date(cursor.getLong(cursor.getColumnIndex("p_create_date"))*1000));
 
-            Log.d(RecentPricesDb.class.getSimpleName(), "Adding product " + product + " to query results.");
+            ProductTarget targets = new ProductTarget();
+            targets.setTargetValue(cursor.getDouble(cursor.getColumnIndex("t_target_val")));
+            targets.setTargetPercent(cursor.getInt(cursor.getColumnIndex("t_target_pct")));
+            product.setTargets(targets);
+
+            Log.d(RecentPricesDb.class.getSimpleName(), "Adding product to query results: " + product);
 
             results.add(product);
         }
@@ -93,7 +98,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
 
         sqLiteDatabase.beginTransaction();
-        sqLiteDatabase.execSQL(PRODUCT_HISTORY_INSERT_SQL, new Object[]{productPriceHistory.getProductId(), productPriceHistory.getPrice()});
+        sqLiteDatabase.execSQL(PRODUCT_HISTORY_INSERT_SQL, new Object[]{productPriceHistory.getProductId(), productPriceHistory.getPrice(), System.currentTimeMillis()/1000});
 
         sqLiteDatabase.setTransactionSuccessful();
         sqLiteDatabase.endTransaction();
@@ -109,7 +114,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
 
     private Long doInsert(Product product) {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        sqLiteDatabase.execSQL(PRODUCT_INSERT_SQL, new String[]{product.getUrl(), product.getName()});
+        sqLiteDatabase.execSQL(PRODUCT_INSERT_SQL, new Object[]{product.getUrl(), product.getName(), System.currentTimeMillis()/1000});
         Long productId = getLastInsertId();
         product.setId(productId);
 
