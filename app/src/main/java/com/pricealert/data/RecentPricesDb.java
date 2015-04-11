@@ -72,22 +72,21 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         return results;
     }
 
-    public long addProduct(Product product) {
+    public void saveProduct(Product product) {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
 
         sqLiteDatabase.beginTransaction();
-        sqLiteDatabase.execSQL(PRODUCT_INSERT_SQL, new String[]{product.getUrl(), product.getName()});
-        Long productId = getLastInsertId();
-        product.setId(productId);
 
-        ProductTarget targets = product.getTargets();
-        sqLiteDatabase.execSQL(PRODUCT_TARGETS_INSERT_SQL, new Object[]{productId, targets.getTargetValue(), targets.getTargetPercent()});
+        if(product.getId() == null) {
+            doInsert(product);
+        }
+        else {
+            doUpdate(product);
+        }
 
         sqLiteDatabase.setTransactionSuccessful();
         sqLiteDatabase.endTransaction();
         sqLiteDatabase.close();
-
-        return productId;
     }
 
     public void newHistory(ProductPriceHistory productPriceHistory) {
@@ -106,5 +105,30 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         Cursor cursor = sqLiteDatabase.rawQuery("select last_insert_rowid();", null);
         cursor.moveToNext();
         return cursor.getLong(0);
+    }
+
+    private Long doInsert(Product product) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        sqLiteDatabase.execSQL(PRODUCT_INSERT_SQL, new String[]{product.getUrl(), product.getName()});
+        Long productId = getLastInsertId();
+        product.setId(productId);
+
+        ProductTarget targets = product.getTargets();
+        sqLiteDatabase.execSQL(PRODUCT_TARGETS_INSERT_SQL, new Object[]{productId, targets.getTargetValue(), targets.getTargetPercent()});
+        return productId;
+    }
+
+    private void doUpdate(Product product) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        ContentValues productsContent = new ContentValues();
+        productsContent.put("url", product.getUrl());
+        productsContent.put("product_name", product.getName());
+        sqLiteDatabase.update("products", productsContent, "id=?", new String[]{product.getId().toString()});
+
+        ProductTarget targets = product.getTargets();
+        ContentValues targetValues = new ContentValues();
+        targetValues.put("target_val", targets.getTargetValue());
+        targetValues.put("target_percent", targets.getTargetPercent());
+        sqLiteDatabase.update("targets", targetValues, "product_id=?", new String[]{product.getId().toString()});
     }
 }
