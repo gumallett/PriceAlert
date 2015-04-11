@@ -2,6 +2,9 @@ package com.pricealert.scraping.yql.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import java.util.Iterator;
+import java.util.List;
+
 public class YQueryResponse {
     private int count;
     private String created;
@@ -50,6 +53,33 @@ public class YQueryResponse {
 
         public void setResults(JsonNode results) {
             this.results = results;
+        }
+
+        public String getText(String id) {
+            if(results == null) {
+                return null;
+            }
+
+            if(results.isArray()) {
+                Iterator<JsonNode> iterator = results.iterator();
+
+                while(iterator.hasNext()) {
+                    JsonNode node = iterator.next();
+
+                    if(node == null || node.isNull()) {
+                        continue;
+                    }
+
+                    List<JsonNode> idNodes = node.findParents("id");
+                    for(JsonNode idNode : idNodes) {
+                        if(id.equals(idNode.get("id").asText())) {
+                            return idNode.findValue("content").asText();
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

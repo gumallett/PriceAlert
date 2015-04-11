@@ -11,7 +11,9 @@ import org.junit.runners.JUnit4;
 import java.io.IOException;
 import java.util.Arrays;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
 public class YQLTest {
@@ -29,13 +31,15 @@ public class YQLTest {
     }
 
     @Test
-    @Ignore
     public void testAmazon() throws Exception {
         String url = "http://www.amazon.com/XFX-Double-947MHz-Graphics-R9290AEDFD/dp/B00HHIPM5Q";
         YQLCSSQuery yqlcssQuery = new YQLCSSQuery();
         yqlcssQuery.setUrl(url);
-        yqlcssQuery.setCssSelector(Arrays.asList("#priceblock_ourprice"));
+        yqlcssQuery.setCssSelector(Arrays.asList("#priceblock_ourprice", "#title"));
         YQLResponse response = template.cssQuery(yqlcssQuery);
         assertNotNull(response);
+
+        String titleText = response.getQuery().getResults().getText("title");
+        assertThat(titleText, is("XFX Double D R9 290 947MHz 4GB DDR5 DP HDMI 2XDVI Graphics Cards R9290AEDFD"));
     }
 }
