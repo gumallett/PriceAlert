@@ -1,11 +1,14 @@
 package com.pricealert.data;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import com.pricealert.data.model.Product;
+import com.pricealert.data.model.ProductPriceHistory;
+import com.pricealert.data.model.ProductTarget;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -17,7 +20,12 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final int VERSION = 1;
 
     private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, ph.price as ph_price, ph.update_date as ph_update_date, t.target_val as t_target_val, t.target_percent as t_target_pct " +
-            "from products p join price_history ph on ph.product_id=p.id join targets t on t.product_id=p.id ";
+            "from products p join price_history ph on ph.product_id=p.id join targets t on t.product_id=p.id " +
+            "order by p_create_date desc, ph_update_date desc;";
+
+    private static final String PRODUCT_INSERT_SQL = "insert into products (url, product_name, create_date) values (?, ?, datetime('now'));";
+    private static final String PRODUCT_TARGETS_INSERT_SQL = "insert into targets (product_id, target_val, target_percent) values (?, ?, ?);";
+    private static final String PRODUCT_HISTORY_INSERT_SQL = "insert into price_history (product_id, price, update_date) values (?, ?, datetime('now'));";
 
     public RecentPricesDb(Context context) {
         super(context, DB_NAME, null, VERSION);
@@ -44,7 +52,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
 
         Log.d(RecentPricesDb.class.getSimpleName(), "Querying for recent quotes...");
 
-        String sql = PRODUCT_DETAILS_SQL + "order by p_create_date desc, ph_update_date desc";
+        String sql = PRODUCT_DETAILS_SQL;
         Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
 
         while(cursor.moveToNext()) {
@@ -62,5 +70,41 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         cursor.close();
         sqLiteDatabase.close();
         return results;
+    }
+
+    public long addProduct(Product product) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+        sqLiteDatabase.beginTransaction();
+        sqLiteDatabase.execSQL(PRODUCT_INSERT_SQL, new String[]{product.getUrl(), product.getName()});
+        Long productId = getLastInsertId();
+        product.setId(productId);
+
+        ProductTarget targets = product.getTargets();
+        sqLiteDatabase.execSQL(PRODUCT_TARGETS_INSERT_SQL, new Object[]{productId, targets.getTargetValue(), targets.getTargetPercent()});
+
+        sqLiteDatabase.setTransactionSuccessful();
+        sqLiteDatabase.endTransaction();
+        sqLiteDatabase.close();
+
+        return productId;
+    }
+
+    public void newHistory(ProductPriceHistory productPriceHistory) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+        sqLiteDatabase.beginTransaction();
+        sqLiteDatabase.execSQL(PRODUCT_HISTORY_INSERT_SQL, new Object[]{productPriceHistory.getProductId(), productPriceHistory.getPrice()});
+
+        sqLiteDatabase.setTransactionSuccessful();
+        sqLiteDatabase.endTransaction();
+        sqLiteDatabase.close();
+    }
+
+    private Long getLastInsertId() {
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+        Cursor cursor = sqLiteDatabase.rawQuery("select last_insert_rowid();", null);
+        cursor.moveToNext();
+        return cursor.getLong(0);
     }
 }

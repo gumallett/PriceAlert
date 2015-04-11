@@ -4,8 +4,17 @@ import java.sql.Date;
 
 public class ProductPriceHistory {
 
+    private Long productId;
     private Double price;
     private Date date;
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
 
     public Date getDate() {
         return date;
