@@ -1,6 +1,7 @@
 package com.pricealert.data.model;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Product {
@@ -11,7 +12,7 @@ public class Product {
     private Date createDate;
 
     private ProductTarget targets;
-    private List<ProductPriceHistory> priceHistory;
+    private List<ProductPriceHistory> priceHistory = new ArrayList<ProductPriceHistory>();
 
     public Date getCreateDate() {
         return createDate;

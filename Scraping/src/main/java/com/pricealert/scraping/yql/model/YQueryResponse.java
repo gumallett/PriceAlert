@@ -79,6 +79,17 @@ public class YQueryResponse {
                 }
             }
 
+            return textHelper(id, results);
+        }
+
+        private String textHelper(String id, JsonNode node) {
+            List<JsonNode> idNodes = node.findParents("id");
+            for(JsonNode idNode : idNodes) {
+                if(id.equals(idNode.get("id").asText())) {
+                    return idNode.findValue("content").asText();
+                }
+            }
+
             return null;
         }
     }

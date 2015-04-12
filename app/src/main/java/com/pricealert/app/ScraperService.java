@@ -1,54 +1,50 @@
 package com.pricealert.app;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
-import android.net.Uri;
+import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import com.pricealert.scraping.Scraper;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import com.pricealert.app.service.PriceUpdater;
+import com.pricealert.data.RecentPricesDb;
+import com.pricealert.data.model.Product;
+import com.pricealert.data.model.ProductPriceHistory;
+import com.pricealert.scraping.yql.YQLTemplate;
+import com.pricealert.scraping.yql.model.YQLCSSQuery;
+import com.pricealert.scraping.yql.model.YQLResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.sql.Date;
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class ScraperService extends IntentService {
+public class ScraperService extends Service {
 
-    public static final String BROADCAST = "SCRAPER_SERVICE_PRICE";
+    private static final Logger LOG = LoggerFactory.getLogger(ScraperService.class);
+
+    private final LocalBinder binder = new LocalBinder();
+    private final YQLTemplate template = new YQLTemplate();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public ScraperService() {
-        this("Scraper Service");
-    }
 
-    /**
-     * Creates an IntentService.  Invoked by your subclass's constructor.
-     *
-     * @param name Used to name the worker thread, important only for debugging.
-     */
-    public ScraperService(String name) {
-        super(name);
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
-        Uri url = intent.getData();
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
 
-        Log.d(ScraperService.class.getSimpleName(), "Scraping url: " + url);
-        Scraper scraper = new Scraper(url.toString());
-        try {
-            Log.d(ScraperReceiver.class.getSimpleName(), "Scraping complete: " + scraper.connect().getPrice());
+    public void updatePrice(final Product product) {
+        executor.submit(new PriceUpdater(this, template, product));
+    }
+
+    public class LocalBinder extends Binder {
+
+        public ScraperService getService() {
+            return ScraperService.this;
         }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
-
-        //database code here
-
-        /*Intent localIntent = new Intent(BROADCAST);
-        localIntent.setData(url);
-        localIntent.putExtra("com.pricealert.scraper.PRICE", scraper.getPrice());
-        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);*/
     }
 }

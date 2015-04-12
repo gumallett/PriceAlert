@@ -9,12 +9,16 @@ import android.util.Log;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductPriceHistory;
 import com.pricealert.data.model.ProductTarget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecentPricesDb extends SQLiteOpenHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RecentPricesDb.class);
 
     private static final String DB_NAME = "pricealert";
     private static final int VERSION = 1;
@@ -50,7 +54,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         List<Product> results = new ArrayList<Product>();
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 
-        Log.d(RecentPricesDb.class.getSimpleName(), "Querying for products...");
+        LOG.info("Querying for products...");
 
         String sql = PRODUCT_DETAILS_SQL;
         Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
@@ -67,7 +71,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
             targets.setTargetPercent(cursor.getInt(cursor.getColumnIndex("t_target_pct")));
             product.setTargets(targets);
 
-            Log.d(RecentPricesDb.class.getSimpleName(), "Adding product to query results: " + product);
+            LOG.info("Adding product to query results: {}", product);
 
             results.add(product);
         }
@@ -98,10 +102,13 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();
 
         sqLiteDatabase.beginTransaction();
+        LOG.info("Running query {}", PRODUCT_HISTORY_INSERT_SQL);
         sqLiteDatabase.execSQL(PRODUCT_HISTORY_INSERT_SQL, new Object[]{productPriceHistory.getProductId(), productPriceHistory.getPrice(), System.currentTimeMillis()/1000});
 
         sqLiteDatabase.setTransactionSuccessful();
         sqLiteDatabase.endTransaction();
+
+        LOG.info("Finished running query {}", PRODUCT_HISTORY_INSERT_SQL);
         sqLiteDatabase.close();
     }
 
