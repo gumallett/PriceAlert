@@ -1,11 +1,5 @@
 package com.pricealert.app.service;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
-import com.pricealert.app.R;
 import com.pricealert.app.ScraperService;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.model.Product;

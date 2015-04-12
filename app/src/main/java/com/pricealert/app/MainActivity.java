@@ -11,9 +11,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import com.pricealert.data.RecentPricesDb;
+import com.pricealert.data.adapter.ProductListAdapter;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
@@ -51,6 +54,15 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final ListView productsListView = (ListView) findViewById(R.id.productsList);
+
+        productsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                startProductActivity(id);
+            }
+        });
+
         LOG.info("MainActivity created...");
     }
 
@@ -60,6 +72,8 @@ public class MainActivity extends ActionBarActivity {
         // Bind to LocalService
         startService(new Intent(this, ScraperService.class));
         bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
+        loadProductList();
+
         LOG.info("MainActivity started...");
     }
 
@@ -72,6 +86,8 @@ public class MainActivity extends ActionBarActivity {
         }
 
         LOG.info("MainActivity resuming...");
+
+        loadProductList();
     }
 
     @Override
@@ -136,6 +152,8 @@ public class MainActivity extends ActionBarActivity {
 
     public void testService(View view) {
         if(mBound) {
+            RecentPricesDb recentPricesDb = new RecentPricesDb(this);
+
             Product product = new Product();
             product.setName("XFX Double D");
             product.setUrl("http://www.amazon.com/XFX-Double-947MHz-Graphics-R9290AEDFD/dp/B00HHIPM5Q/");
@@ -144,10 +162,29 @@ public class MainActivity extends ActionBarActivity {
             target.setTargetValue(250.99);
             product.setTargets(target);
 
-            RecentPricesDb recentPricesDb = new RecentPricesDb(this);
             recentPricesDb.saveProduct(product);
 
             scraperService.updatePrice(product);
         }
+    }
+
+    public void trackOnClick(View view) {
+        startProductActivity(null);
+    }
+
+    public void startProductActivity(Long productId) {
+        Intent resultIntent = new Intent(this, ProductActivity.class);
+
+        if(productId != null) {
+            resultIntent.putExtra("PRODUCT_ID", productId);
+        }
+
+        startActivity(resultIntent);
+    }
+
+    private void loadProductList() {
+        RecentPricesDb db = new RecentPricesDb(this);
+        final ListView productsListView = (ListView) findViewById(R.id.productsList);
+        productsListView.setAdapter(new ProductListAdapter(db.selectProducts()));
     }
 }

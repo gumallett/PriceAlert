@@ -1,8 +1,9 @@
 package com.pricealert.data.model;
 
+import java.io.Serializable;
 import java.sql.Date;
 
-public class ProductPriceHistory {
+public class ProductPriceHistory implements Serializable {
 
     private Long productId;
     private Double price;

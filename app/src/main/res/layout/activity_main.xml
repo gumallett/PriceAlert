@@ -29,4 +29,20 @@
                 android:layout_marginTop="20dp"/>
     </RelativeLayout>
 
+    <RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Track New"
+                android:id="@+id/addProductBtn"
+                android:layout_centerHorizontal="true" android:onClick="trackOnClick"/>
+    </RelativeLayout>
+
+    <ListView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/productsList">
+
+    </ListView>
+
 </LinearLayout>

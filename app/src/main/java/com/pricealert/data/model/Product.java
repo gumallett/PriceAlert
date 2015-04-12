@@ -1,10 +1,11 @@
 package com.pricealert.data.model;
 
+import java.io.Serializable;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Product {
+public class Product implements Serializable {
 
     private Long id;
     private String url;

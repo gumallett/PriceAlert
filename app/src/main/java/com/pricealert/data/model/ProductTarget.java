@@ -1,6 +1,8 @@
 package com.pricealert.data.model;
 
-public class ProductTarget {
+import java.io.Serializable;
+
+public class ProductTarget implements Serializable {
 
     private Double targetValue;
     private Integer targetPercent;
