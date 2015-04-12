@@ -25,7 +25,8 @@ public class MainActivity extends ActionBarActivity {
 
     private boolean mBound = false;
     private ScraperService scraperService;
-    private ServiceConnection mConnection = new ServiceConnection() {
+
+    private final ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
