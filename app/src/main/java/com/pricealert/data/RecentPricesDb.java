@@ -23,9 +23,9 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final String DB_NAME = "pricealert";
     private static final int VERSION = 1;
 
-    private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, ph.price as ph_price, ph.update_date as ph_update_date, t.target_val as t_target_val, t.target_percent as t_target_pct " +
-            "from products p join targets t on t.product_id=p.id left join price_history ph on ph.product_id=p.id " +
-            "order by p_create_date desc, ph_update_date desc;";
+    private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, ph.price as ph_price, ph.update_date as ph_update_date " +
+            "from products p join targets t on t.product_id=p.id left join (select price, update_date from price_history order by update_date desc limit 1) ph " +
+            "where p.id=?;";
 
     private static final String PRODUCT_INSERT_SQL = "insert into products (url, product_name, create_date) values (?, ?, ?);";
     private static final String PRODUCT_TARGETS_INSERT_SQL = "insert into targets (product_id, target_val, target_percent) values (?, ?, ?);";
@@ -50,21 +50,24 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public List<Product> selectProductDetails() {
-        List<Product> results = new ArrayList<Product>();
+    public Product selectProductDetails(long id) {
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 
         LOG.info("Querying for products...");
 
         String sql = PRODUCT_DETAILS_SQL;
-        Cursor cursor = sqLiteDatabase.rawQuery(sql, null);
+        Cursor cursor = sqLiteDatabase.rawQuery(sql, new String[] {String.valueOf(id)});
 
-        while(cursor.moveToNext()) {
-            Product product = new Product();
+        Product product = null;
+
+        if(cursor.moveToNext()) {
+            product = new Product();
             product.setId(cursor.getLong(cursor.getColumnIndex("p_id")));
             product.setUrl(cursor.getString(cursor.getColumnIndex("p_url")));
             product.setName(cursor.getString(cursor.getColumnIndex("p_product_name")));
             product.setCreateDate(new Date(cursor.getLong(cursor.getColumnIndex("p_create_date"))*1000));
+            product.setMostRecentPrice(cursor.getDouble(cursor.getColumnIndex("ph_price")));
+            product.setLastPriceUpdate(new Date(cursor.getLong(cursor.getColumnIndex("ph_update_date"))*1000));
 
             ProductTarget targets = new ProductTarget();
             targets.setTargetValue(cursor.getDouble(cursor.getColumnIndex("t_target_val")));
@@ -72,13 +75,11 @@ public class RecentPricesDb extends SQLiteOpenHelper {
             product.setTargets(targets);
 
             LOG.info("Adding product to query results: {}", product);
-
-            results.add(product);
         }
 
         cursor.close();
         sqLiteDatabase.close();
-        return results;
+        return product;
     }
 
     public void saveProduct(Product product) {

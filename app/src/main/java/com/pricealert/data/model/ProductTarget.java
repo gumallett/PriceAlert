@@ -20,4 +20,12 @@ public class ProductTarget {
     public void setTargetValue(Double targetValue) {
         this.targetValue = targetValue;
     }
+
+    @Override
+    public String toString() {
+        return "ProductTarget{" +
+                "targetPercent=" + targetPercent +
+                ", targetValue=" + targetValue +
+                '}';
+    }
 }

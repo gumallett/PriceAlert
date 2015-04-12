@@ -91,17 +91,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp">
 
-        <EditText
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:id="@+id/editText"
-                android:hint="Target Price"
-                android:layout_toStartOf="@id/editText2"
-                android:layout_toLeftOf="@id/editText2"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentLeft="true"/>
-
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -123,6 +112,17 @@
                 android:gravity="end"
                 android:layout_toStartOf="@id/textView14"
                 android:layout_toLeftOf="@id/textView14"/>
+
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:id="@+id/editText"
+                android:hint="Target Price"
+                android:layout_toStartOf="@id/editText2"
+                android:layout_toLeftOf="@id/editText2"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"/>
 
 
     </RelativeLayout>

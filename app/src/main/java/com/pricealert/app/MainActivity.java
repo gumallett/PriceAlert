@@ -14,10 +14,14 @@ import android.view.View;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductTarget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class MainActivity extends ActionBarActivity {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MainActivity.class);
 
     private boolean mBound = false;
     private ScraperService scraperService;
@@ -43,6 +47,14 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Intent intent = getIntent();
+
+        if(intent != null) {
+            RecentPricesDb db = new RecentPricesDb(this);
+            Product product = db.selectProductDetails(intent.getLongExtra("PRODUCT_ID", -1L));
+            LOG.info("Activity product: {}", product);
+        }
     }
 
     @Override
@@ -114,7 +126,7 @@ public class MainActivity extends ActionBarActivity {
         RecentPricesDb recentPricesDb = new RecentPricesDb(this);
         recentPricesDb.saveProduct(product);
 
-        List<Product> productList = recentPricesDb.selectProductDetails();
+        Product productList = recentPricesDb.selectProductDetails(product.getId());
         Log.d(MainActivity.class.getSimpleName(), productList.toString());
     }
 
