@@ -12,9 +12,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
+import com.pricealert.app.service.ScraperService;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.adapter.ProductListAdapter;
 import com.pricealert.data.model.Product;
@@ -22,7 +21,7 @@ import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -155,11 +154,11 @@ public class MainActivity extends ActionBarActivity {
             RecentPricesDb recentPricesDb = new RecentPricesDb(this);
 
             Product product = new Product();
-            product.setName("XFX Double D");
+            product.setName("TEST NOTIFICATION " + new Random().nextInt(10000));
             product.setUrl("http://www.amazon.com/XFX-Double-947MHz-Graphics-R9290AEDFD/dp/B00HHIPM5Q/");
 
             ProductTarget target = new ProductTarget();
-            target.setTargetValue(250.99);
+            target.setTargetValue(270.99);
             product.setTargets(target);
 
             recentPricesDb.saveProduct(product);

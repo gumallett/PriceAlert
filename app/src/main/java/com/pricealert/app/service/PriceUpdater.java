@@ -1,6 +1,5 @@
 package com.pricealert.app.service;
 
-import com.pricealert.app.ScraperService;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductPriceHistory;
@@ -21,9 +20,9 @@ public final class PriceUpdater implements Runnable {
     private final YQLTemplate template;
     private final Product product;
 
-    public PriceUpdater(ScraperService context, YQLTemplate template, Product product) {
+    public PriceUpdater(ScraperService context, Product product) {
         this.context = context;
-        this.template = template;
+        this.template = context.getYqlTemplate();
         this.product = product;
     }
 
@@ -51,7 +50,10 @@ public final class PriceUpdater implements Runnable {
                 RecentPricesDb db = new RecentPricesDb(context);
                 db.newHistory(priceHistory);
 
-                context.sendNotification(product, price);
+                if(shouldNotify(priceHistory.getPrice())) {
+                    LOG.info("New low price detected!");
+                    context.sendNotification(product, price);
+                }
             }
             catch(Exception e) {
                 LOG.error("Failed to save price: ", e);
@@ -59,7 +61,18 @@ public final class PriceUpdater implements Runnable {
         }
         else {
             LOG.info("Price not found for product {}, retrying...", product.getName());
-            context.updatePrice(product);
+            context.quickRetry(this);
         }
+    }
+
+    public boolean shouldNotify(Double price) {
+        if(product.getTargets().getTargetValue() != null && product.getTargets().getTargetPercent() != null) {
+            return (product.getTargets().getTargetValue() * (double) product.getTargets().getTargetPercent() / 100.0) > price;
+        }
+        else if(product.getTargets().getTargetValue() != null) {
+            return product.getTargets().getTargetValue() > price;
+        }
+
+        return false;
     }
 }

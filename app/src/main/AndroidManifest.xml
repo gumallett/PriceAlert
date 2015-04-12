@@ -20,7 +20,7 @@
         </activity>
 
         <service
-            android:name=".ScraperService"
+            android:name=".service.ScraperService"
             android:enabled="true"
             android:exported="false" >
         </service>

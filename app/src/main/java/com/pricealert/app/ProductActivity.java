@@ -1,13 +1,19 @@
 package com.pricealert.app;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import com.pricealert.app.service.ScraperService;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductTarget;
@@ -18,6 +24,28 @@ import org.slf4j.LoggerFactory;
 public class ProductActivity extends ActionBarActivity {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductActivity.class);
+
+    private boolean mBound = false;
+    private ScraperService scraperService;
+
+    private final ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            ScraperService.LocalBinder binder = (ScraperService.LocalBinder) service;
+            scraperService = binder.getService();
+            mBound = true;
+
+            Log.d(MainActivity.class.getSimpleName(), "ScraperService bound.");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
     Long productId = null;
 
     @Override
@@ -46,6 +74,48 @@ public class ProductActivity extends ActionBarActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(!mBound) {
+            bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(!mBound) {
+            bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mBound) {
+            mBound = false;
+            unbindService(mConnection);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(mBound) {
+            mBound = false;
+            unbindService(mConnection);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mBound) {
+            mBound = false;
+            unbindService(mConnection);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -107,5 +177,9 @@ public class ProductActivity extends ActionBarActivity {
         product.setTargets(targets);
 
         db.saveProduct(product);
+
+        if(product.getId() != null && mBound) {
+            scraperService.track(product);
+        }
     }
 }
