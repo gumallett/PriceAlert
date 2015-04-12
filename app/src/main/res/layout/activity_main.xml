@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
@@ -66,38 +67,23 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp">
 
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Product Url"
-                android:id="@+id/urlLabel"
-                android:layout_alignBottom="@+id/urlText"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"/>
-
         <EditText
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/urlText"
-                android:layout_alignParentRight="true" android:layout_alignParentEnd="true"
-                android:inputType="textUri"/>
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:inputType="textUri"
+                android:hint="Product Url"/>
 
 
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Product Name"
-                android:id="@+id/nameLabel"
-                android:layout_centerVertical="true" android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"/>
         <EditText
-                android:layout_width="wrap_content"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/nameText" android:layout_alignBottom="@+id/nameLabel"
-                android:layout_alignLeft="@+id/urlText" android:layout_alignStart="@+id/urlText"
-                android:layout_alignRight="@+id/urlText" android:layout_alignEnd="@+id/urlText"/>
+                android:id="@+id/nameText"
+                android:layout_below="@+id/urlText"
+                android:hint="Product Name"/>
     </RelativeLayout>
 
     <RelativeLayout
@@ -105,43 +91,40 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp">
 
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Set Target Low Price:"
-                android:id="@+id/textView2"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"/>
-
         <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:ems="10"
                 android:id="@+id/editText"
-                android:text="*price*"
-                android:layout_alignTop="@+id/textView2"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"/>
+                android:hint="Target Price"
+                android:layout_toStartOf="@id/editText2"
+                android:layout_toLeftOf="@id/editText2"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"/>
 
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Set Target % Savings:"
-                android:id="@+id/textView5"
-                android:layout_below="@+id/editText"
-                android:layout_alignRight="@+id/textView2"
-                android:layout_alignEnd="@+id/textView2"/>
+                android:text="%"
+                android:id="@+id/textView14"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:paddingLeft="3dp"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+                android:layout_centerVertical="true"/>
 
         <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="number"
-                android:ems="10"
                 android:id="@+id/editText2"
-                android:text="* % off price*"
-                android:layout_below="@+id/editText" android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"/>
+                android:hint="Target"
+                android:textAlignment="textEnd"
+                android:gravity="end"
+                android:layout_toStartOf="@id/textView14"
+                android:layout_toLeftOf="@id/textView14"/>
+
+
     </RelativeLayout>
 
     <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
