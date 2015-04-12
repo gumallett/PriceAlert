@@ -57,12 +57,12 @@ public class ScraperService extends Service {
         notificationBuilder.setVibrate(new long[]{1, 500});
         notificationBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
 
-        Intent resultIntent = new Intent(this, MainActivity.class);
+        Intent resultIntent = new Intent(this, ProductActivity.class);
         resultIntent.putExtra("PRODUCT_ID", product.getId());
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addParentStack(ProductActivity.class);
         // Adds the Intent that starts the Activity to the top of the stack
         stackBuilder.addNextIntent(resultIntent);
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);

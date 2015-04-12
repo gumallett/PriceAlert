@@ -10,9 +10,8 @@ public class Product {
     private String url;
     private String name;
     private Date createDate;
-    private Double mostRecentPrice;
-    private Date lastPriceUpdate;
 
+    private ProductPriceHistory mostRecentPrice;
     private ProductTarget targets;
     private List<ProductPriceHistory> priceHistory = new ArrayList<ProductPriceHistory>();
 
@@ -48,20 +47,12 @@ public class Product {
         this.url = url;
     }
 
-    public Double getMostRecentPrice() {
+    public ProductPriceHistory getMostRecentPrice() {
         return mostRecentPrice;
     }
 
-    public void setMostRecentPrice(Double mostRecentPrice) {
+    public void setMostRecentPrice(ProductPriceHistory mostRecentPrice) {
         this.mostRecentPrice = mostRecentPrice;
-    }
-
-    public Date getLastPriceUpdate() {
-        return lastPriceUpdate;
-    }
-
-    public void setLastPriceUpdate(Date lastPriceUpdate) {
-        this.lastPriceUpdate = lastPriceUpdate;
     }
 
     public List<ProductPriceHistory> getPriceHistory() {
@@ -80,14 +71,6 @@ public class Product {
         this.targets = targets;
     }
 
-    public ProductPriceHistory getMostRecentPriceHistory() {
-        if(priceHistory != null) {
-            return priceHistory.get(0);
-        }
-
-        return null;
-    }
-
     @Override
     public String toString() {
         return "Product{" +
@@ -96,7 +79,6 @@ public class Product {
                 ", url='" + url + '\'' +
                 ", name='" + name + '\'' +
                 ", mostRecentPrice=" + mostRecentPrice +
-                ", lastPriceUpdate=" + lastPriceUpdate +
                 ", targets=" + targets +
                 ", priceHistory=" + priceHistory +
                 '}';

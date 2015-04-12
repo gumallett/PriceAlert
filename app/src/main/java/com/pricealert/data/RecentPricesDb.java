@@ -66,8 +66,12 @@ public class RecentPricesDb extends SQLiteOpenHelper {
             product.setUrl(cursor.getString(cursor.getColumnIndex("p_url")));
             product.setName(cursor.getString(cursor.getColumnIndex("p_product_name")));
             product.setCreateDate(new Date(cursor.getLong(cursor.getColumnIndex("p_create_date"))*1000));
-            product.setMostRecentPrice(cursor.getDouble(cursor.getColumnIndex("ph_price")));
-            product.setLastPriceUpdate(new Date(cursor.getLong(cursor.getColumnIndex("ph_update_date"))*1000));
+
+            ProductPriceHistory recentHistory = new ProductPriceHistory();
+            recentHistory.setProductId(product.getId());
+            recentHistory.setDate(new Date(cursor.getLong(cursor.getColumnIndex("ph_update_date")) * 1000));
+            recentHistory.setPrice(cursor.getDouble(cursor.getColumnIndex("ph_price")));
+            product.setMostRecentPrice(recentHistory);
 
             ProductTarget targets = new ProductTarget();
             targets.setTargetValue(cursor.getDouble(cursor.getColumnIndex("t_target_val")));

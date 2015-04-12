@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductTarget;
@@ -49,13 +51,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = getIntent();
-
-        if(intent != null) {
-            RecentPricesDb db = new RecentPricesDb(this);
-            Product product = db.selectProductDetails(intent.getLongExtra("PRODUCT_ID", -1L));
-            LOG.info("Activity product: {}", product);
-        }
+        LOG.info("MainActivity created...");
     }
 
     @Override
@@ -64,6 +60,7 @@ public class MainActivity extends ActionBarActivity {
         // Bind to LocalService
         startService(new Intent(this, ScraperService.class));
         bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
+        LOG.info("MainActivity started...");
     }
 
     @Override
@@ -73,6 +70,8 @@ public class MainActivity extends ActionBarActivity {
         if(!mBound) {
             bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
         }
+
+        LOG.info("MainActivity resuming...");
     }
 
     @Override
@@ -82,6 +81,8 @@ public class MainActivity extends ActionBarActivity {
             mBound = false;
             unbindService(mConnection);
         }
+
+        LOG.info("MainActivity paused...");
     }
 
     @Override
@@ -91,6 +92,8 @@ public class MainActivity extends ActionBarActivity {
             mBound = false;
             unbindService(mConnection);
         }
+
+        LOG.info("MainActivity destroyed...");
     }
 
     @Override

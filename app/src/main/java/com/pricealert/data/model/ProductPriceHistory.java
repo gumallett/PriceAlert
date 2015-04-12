@@ -31,4 +31,13 @@ public class ProductPriceHistory {
     public void setPrice(Double price) {
         this.price = price;
     }
+
+    @Override
+    public String toString() {
+        return "ProductPriceHistory{" +
+                "date=" + date +
+                ", productId=" + productId +
+                ", price=" + price +
+                '}';
+    }
 }
