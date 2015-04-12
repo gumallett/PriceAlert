@@ -49,8 +49,35 @@ public class MainActivity extends ActionBarActivity {
     protected void onStart() {
         super.onStart();
         // Bind to LocalService
-        Intent intent = new Intent(this, ScraperService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        startService(new Intent(this, ScraperService.class));
+        bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(!mBound) {
+            bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mBound) {
+            mBound = false;
+            unbindService(mConnection);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mBound) {
+            mBound = false;
+            unbindService(mConnection);
+        }
     }
 
     @Override

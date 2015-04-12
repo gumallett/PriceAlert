@@ -57,14 +57,7 @@ public final class PriceUpdater implements Runnable {
                 RecentPricesDb db = new RecentPricesDb(context);
                 db.newHistory(priceHistory);
 
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context);
-                notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
-                notificationBuilder.setContentTitle("New Price!");
-                notificationBuilder.setContentText("New Price found for " + product.getName() + ": " + price);
-                Notification notification = notificationBuilder.build();
-                NotificationManager mNotificationManager =
-                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.notify(1, notification);
+                context.sendNotification(product, price);
             }
             catch(Exception e) {
                 LOG.error("Failed to save price: ", e);
