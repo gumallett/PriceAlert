@@ -153,14 +153,22 @@ android:padding="10dp">
 </RelativeLayout>
 
 <RelativeLayout
-        android:layout_width="fill_parent" android:layout_height="wrap_content"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:layout_marginTop="10dp">
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Save"
             android:id="@+id/saveBtn"
-            android:layout_centerHorizontal="true" android:onClick="saveProduct"/>
+            android:onClick="saveProduct"/>
+
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Delete"
+            android:id="@+id/deleteBtn"
+            android:layout_toEndOf="@id/saveBtn"
+            android:layout_toRightOf="@id/saveBtn" android:onClick="deleteProduct"/>
 </RelativeLayout>
 
 <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent">

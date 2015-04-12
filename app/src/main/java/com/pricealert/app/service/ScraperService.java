@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class ScraperService extends Service {
 
@@ -28,7 +25,7 @@ public class ScraperService extends Service {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    private final Set<Product> trackedItems = new HashSet<Product>();
+    private final Map<Product, ScheduledFuture> trackedItems = new HashMap<Product, ScheduledFuture>();
 
     public ScraperService() {
 
@@ -46,24 +43,33 @@ public class ScraperService extends Service {
     }
 
     public void track(Product product) {
-        if(trackedItems.contains(product)) {
+        if(trackedItems.containsKey(product)) {
             return;
         }
 
         LOG.info("Tracking new product: {} ", product);
 
-        trackedItems.add(product);
-
         PriceUpdater priceUpdater = new PriceUpdater(this, product);
-        scheduledExecutor.scheduleAtFixedRate(priceUpdater, 0, 10, TimeUnit.MINUTES);
+        ScheduledFuture future = scheduledExecutor.scheduleAtFixedRate(priceUpdater, 0, 10, TimeUnit.MINUTES);
+        trackedItems.put(product, future);
+    }
+
+    public void unTrack(Product product) {
+        if(!trackedItems.containsKey(product)) {
+            return;
+        }
+
+        LOG.info("Untracking product: {} ", product);
+        ScheduledFuture future = trackedItems.remove(product);
+        future.cancel(true);
     }
 
     public void updatePrice(final Product product) {
         executor.submit(new PriceUpdater(this, product));
     }
 
-    public Set<Product> getTrackedItems() {
-        return Collections.unmodifiableSet(trackedItems);
+    public Map<Product, ScheduledFuture> getTrackedItems() {
+        return Collections.unmodifiableMap(trackedItems);
     }
 
     public void sendNotification(Product product, String newPrice) {

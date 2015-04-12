@@ -20,6 +20,8 @@ import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
+
 
 public class ProductActivity extends ActionBarActivity {
 
@@ -52,26 +54,6 @@ public class ProductActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product);
-
-        Intent intent = getIntent();
-
-        if(intent != null) {
-            RecentPricesDb db = new RecentPricesDb(this);
-            Product product = db.selectProductDetails(intent.getLongExtra("PRODUCT_ID", -1L));
-            LOG.info("Activity product: {}", product);
-
-            if(product != null) {
-                productId = product.getId();
-                EditText urlText = (EditText) findViewById(R.id.productUrl);
-                urlText.setText(product.getUrl());
-
-                EditText nameText = (EditText) findViewById(R.id.productName);
-                nameText.setText(product.getName());
-
-                TextView priceView = (TextView) findViewById(R.id.lastPriceText);
-                priceView.setText(String.valueOf(product.getMostRecentPrice().getPrice()));
-            }
-        }
     }
 
     @Override
@@ -88,6 +70,8 @@ public class ProductActivity extends ActionBarActivity {
         if(!mBound) {
             bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
         }
+
+        loadProduct();
     }
 
     @Override
@@ -177,9 +161,71 @@ public class ProductActivity extends ActionBarActivity {
         product.setTargets(targets);
 
         db.saveProduct(product);
+        productId = product.getId();
+
+        if(productId != null) {
+            View deleteBtn = findViewById(R.id.deleteBtn);
+            deleteBtn.setEnabled(true);
+        }
 
         if(product.getId() != null && mBound) {
             scraperService.track(product);
+        }
+    }
+
+    public void deleteProduct(View view) {
+        if(productId == null) {
+            return;
+        }
+
+        Product product = new Product();
+        product.setId(productId);
+
+        scraperService.unTrack(product);
+
+        RecentPricesDb db = new RecentPricesDb(this);
+        db.deleteProduct(product);
+
+        startActivity(new Intent(this, MainActivity.class));
+    }
+
+    private void loadProduct() {
+        Intent intent = getIntent();
+
+        if(intent != null) {
+            RecentPricesDb db = new RecentPricesDb(this);
+            Product product = db.selectProductDetails(intent.getLongExtra("PRODUCT_ID", -1L));
+            LOG.info("Activity product: {}", product);
+
+            if(product != null) {
+                productId = product.getId();
+                EditText urlText = (EditText) findViewById(R.id.productUrl);
+                urlText.setText(product.getUrl());
+
+                EditText nameText = (EditText) findViewById(R.id.productName);
+                nameText.setText(product.getName());
+
+                TextView priceView = (TextView) findViewById(R.id.lastPriceText);
+                priceView.setText(String.valueOf(product.getMostRecentPrice().getPrice()));
+
+                if(product.getTargets().getTargetValue() != null) {
+                    DecimalFormat format = new DecimalFormat("#,##0.00");
+                    EditText targetText = (EditText) findViewById(R.id.productTargetPrice);
+                    targetText.setText(format.format(product.getTargets().getTargetValue()));
+                }
+
+                if(product.getTargets().getTargetPercent() != null) {
+                    EditText targetPctText = (EditText) findViewById(R.id.productTargetPct);
+                    targetPctText.setText(String.valueOf(product.getTargets().getTargetPercent()));
+                }
+
+                View deleteBtn = findViewById(R.id.deleteBtn);
+                deleteBtn.setEnabled(true);
+            }
+            else {
+                View deleteBtn = findViewById(R.id.deleteBtn);
+                deleteBtn.setEnabled(false);
+            }
         }
     }
 }

@@ -32,6 +32,8 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final String PRODUCT_TARGETS_INSERT_SQL = "insert into targets (product_id, target_val, target_percent) values (?, ?, ?);";
     private static final String PRODUCT_HISTORY_INSERT_SQL = "insert into price_history (product_id, price, update_date) values (?, ?, ?);";
 
+    private static final String DELETE_PRODUCT_SQL = "delete from products where id=?";
+
     public RecentPricesDb(Context context) {
         super(context, DB_NAME, null, VERSION);
     }
@@ -39,8 +41,8 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE PRODUCTS (ID INTEGER PRIMARY KEY, url TEXT NOT NULL, PRODUCT_NAME TEXT, CREATE_DATE DATETIME NOT NULL);");
-        db.execSQL("CREATE TABLE TARGETS (PRODUCT_ID INTEGER NOT NULL, TARGET_VAL DECIMAL(8,2), TARGET_PERCENT INT, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID));");
-        db.execSQL("CREATE TABLE PRICE_HISTORY (PRODUCT_ID INTEGER NOT NULL, PRICE DECIMAL(8,2) NOT NULL, UPDATE_DATE DATETIME NOT NULL, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID));");
+        db.execSQL("CREATE TABLE TARGETS (PRODUCT_ID INTEGER NOT NULL, TARGET_VAL DECIMAL(8,2), TARGET_PERCENT INT, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID) ON DELETE CASCADE);");
+        db.execSQL("CREATE TABLE PRICE_HISTORY (PRODUCT_ID INTEGER NOT NULL, PRICE DECIMAL(8,2) NOT NULL, UPDATE_DATE DATETIME NOT NULL, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID) ON DELETE CASCADE);");
     }
 
     @Override
@@ -65,6 +67,8 @@ public class RecentPricesDb extends SQLiteOpenHelper {
             productList.add(product);
         }
 
+        cursor.close();
+        sqLiteDatabase.close();
         return productList;
     }
 
@@ -76,15 +80,15 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         String sql = PRODUCT_DETAILS_QUERY;
         Cursor cursor = sqLiteDatabase.rawQuery(sql, new String[] {String.valueOf(id)});
 
+        Product product = null;
         if(cursor.moveToNext()) {
-            Product product = createProduct(cursor);
+            product = createProduct(cursor);
             LOG.info("Loaded product: {}", product);
-            return product;
         }
 
         cursor.close();
         sqLiteDatabase.close();
-        return null;
+        return product;
     }
 
     public void saveProduct(Product product) {
@@ -93,14 +97,38 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         sqLiteDatabase.beginTransaction();
         LOG.info("Saving product {}", product);
 
-        if(product.getId() == null) {
-            doInsert(product);
+        try {
+            if(product.getId() == null) {
+                doInsert(product);
+            }
+            else {
+                doUpdate(product);
+            }
+
+            sqLiteDatabase.setTransactionSuccessful();
         }
-        else {
-            doUpdate(product);
+        catch(Exception e) {
+            LOG.error("Error saving product: ", e);
         }
 
-        sqLiteDatabase.setTransactionSuccessful();
+        sqLiteDatabase.endTransaction();
+        sqLiteDatabase.close();
+    }
+
+    public void deleteProduct(Product product) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+        sqLiteDatabase.beginTransaction();
+        LOG.info("Deleting product {}", product);
+
+        try {
+            sqLiteDatabase.execSQL(DELETE_PRODUCT_SQL, new Object[]{product.getId()});
+            sqLiteDatabase.setTransactionSuccessful();
+        }
+        catch(Exception e) {
+            LOG.error("Error deleting product: ", e);
+        }
+
         sqLiteDatabase.endTransaction();
         sqLiteDatabase.close();
     }
@@ -110,12 +138,18 @@ public class RecentPricesDb extends SQLiteOpenHelper {
 
         sqLiteDatabase.beginTransaction();
         LOG.info("Running query {}", PRODUCT_HISTORY_INSERT_SQL);
-        sqLiteDatabase.execSQL(PRODUCT_HISTORY_INSERT_SQL, new Object[]{productPriceHistory.getProductId(), productPriceHistory.getPrice(), System.currentTimeMillis()/1000});
 
-        sqLiteDatabase.setTransactionSuccessful();
-        sqLiteDatabase.endTransaction();
+        try {
+            sqLiteDatabase.execSQL(PRODUCT_HISTORY_INSERT_SQL, new Object[]{productPriceHistory.getProductId(), productPriceHistory.getPrice(), System.currentTimeMillis()/1000});
+            sqLiteDatabase.setTransactionSuccessful();
+        }
+        catch(Exception e) {
+            LOG.error("Error saving price history: ", e);
+        }
 
         LOG.info("Finished running query {}", PRODUCT_HISTORY_INSERT_SQL);
+
+        sqLiteDatabase.endTransaction();
         sqLiteDatabase.close();
     }
 
