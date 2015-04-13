@@ -66,11 +66,14 @@ public final class PriceUpdater implements Runnable {
     }
 
     public boolean shouldNotify(Double price) {
-        if(product.getTargets().getTargetValue() != null && product.getTargets().getTargetPercent() != null) {
-            return (product.getTargets().getTargetValue() * (double) product.getTargets().getTargetPercent() / 100.0) > price;
+        Integer targetPercent = product.getTargets().getTargetPercent();
+        Double targetValue = product.getTargets().getTargetValue();
+
+        if(targetValue != null && targetPercent != null && targetPercent > 0) {
+            return (targetValue * (double) targetPercent / 100.0) > price;
         }
-        else if(product.getTargets().getTargetValue() != null) {
-            return product.getTargets().getTargetValue() > price;
+        else if(targetValue != null) {
+            return targetValue > price;
         }
 
         return false;
