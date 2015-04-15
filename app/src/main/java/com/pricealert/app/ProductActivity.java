@@ -48,7 +48,7 @@ public class ProductActivity extends ActionBarActivity {
         }
     };
 
-    Long productId = null;
+    private long productId = -1L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,7 +126,10 @@ public class ProductActivity extends ActionBarActivity {
     public void saveProduct(View view) {
         RecentPricesDb db = new RecentPricesDb(this);
         Product product = new Product();
-        product.setId(productId);
+
+        if (productId != -1) {
+            product.setId(productId);
+        }
 
         EditText urlText = (EditText) findViewById(R.id.productUrl);
         EditText nameText = (EditText) findViewById(R.id.productName);
@@ -161,9 +164,9 @@ public class ProductActivity extends ActionBarActivity {
         product.setTargets(targets);
 
         db.saveProduct(product);
-        productId = product.getId();
 
-        if(productId != null) {
+        if(product.getId() != null) {
+            productId = product.getId();
             View deleteBtn = findViewById(R.id.deleteBtn);
             deleteBtn.setEnabled(true);
         }
@@ -174,7 +177,7 @@ public class ProductActivity extends ActionBarActivity {
     }
 
     public void deleteProduct(View view) {
-        if(productId == null) {
+        if(productId == -1L) {
             return;
         }
 
@@ -194,7 +197,8 @@ public class ProductActivity extends ActionBarActivity {
 
         if(intent != null) {
             RecentPricesDb db = new RecentPricesDb(this);
-            Product product = db.selectProductDetails(intent.getLongExtra("PRODUCT_ID", -1L));
+            long id = intent.getLongExtra("PRODUCT_ID", -1L);
+            Product product = db.selectProductDetails(id);
             LOG.info("Activity product: {}", product);
 
             if(product != null) {
