@@ -54,6 +54,34 @@ public class ProductActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product);
+
+        findViewById(R.id.productUrl).setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                saveProduct(v);
+            }
+        });
+
+        findViewById(R.id.productName).setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                saveProduct(v);
+            }
+        });
+
+        findViewById(R.id.productTargetPct).setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                saveProduct(v);
+            }
+        });
+
+        findViewById(R.id.productTargetPrice).setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                saveProduct(v);
+            }
+        });
     }
 
     @Override
@@ -81,6 +109,8 @@ public class ProductActivity extends ActionBarActivity {
             mBound = false;
             unbindService(mConnection);
         }
+
+        saveProduct(null);
     }
 
     @Override
@@ -171,7 +201,7 @@ public class ProductActivity extends ActionBarActivity {
             deleteBtn.setEnabled(true);
         }
 
-        if(product.getId() != null && mBound) {
+        if(product.getId() != null && product.getUrl() != null && mBound) {
             scraperService.track(product);
         }
     }

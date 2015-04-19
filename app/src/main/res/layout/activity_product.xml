@@ -21,7 +21,8 @@ android:padding="10dp">
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"/>
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            />
 
     <TextView
             android:layout_width="wrap_content"
@@ -155,20 +156,13 @@ android:padding="10dp">
 <RelativeLayout
         android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:layout_marginTop="10dp">
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save"
-            android:id="@+id/saveBtn"
-            android:onClick="saveProduct"/>
 
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Delete"
             android:id="@+id/deleteBtn"
-            android:layout_toEndOf="@id/saveBtn"
-            android:layout_toRightOf="@id/saveBtn" android:onClick="deleteProduct"/>
+            android:onClick="deleteProduct"/>
 </RelativeLayout>
 
 <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
