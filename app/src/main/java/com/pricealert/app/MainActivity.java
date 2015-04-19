@@ -85,8 +85,6 @@ public class MainActivity extends ActionBarActivity {
         }
 
         LOG.info("MainActivity resuming...");
-
-        loadProductList();
     }
 
     @Override
@@ -158,7 +156,7 @@ public class MainActivity extends ActionBarActivity {
             product.setUrl("http://www.amazon.com/XFX-Double-947MHz-Graphics-R9290AEDFD/dp/B00HHIPM5Q/");
 
             ProductTarget target = new ProductTarget();
-            target.setTargetValue(270.99);
+            target.setTargetValue(2270.99);
             product.setTargets(target);
 
             recentPricesDb.saveProduct(product);
