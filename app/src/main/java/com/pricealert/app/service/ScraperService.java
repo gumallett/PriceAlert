@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import com.pricealert.app.ProductActivity;
 import com.pricealert.app.R;
+import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
 import com.pricealert.scraping.yql.YQLTemplate;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class ScraperService extends Service {
+public final class ScraperService extends Service {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScraperService.class);
 
@@ -25,7 +26,7 @@ public class ScraperService extends Service {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    private final Map<Product, ScheduledFuture> trackedItems = new HashMap<Product, ScheduledFuture>();
+    private final Map<ProductInfoDto, ScheduledFuture> trackedItems = new HashMap<ProductInfoDto, ScheduledFuture>();
 
     public ScraperService() {
 
@@ -42,9 +43,9 @@ public class ScraperService extends Service {
         return false;
     }
 
-    public void track(Product product) {
+    public void track(ProductInfoDto product) {
         if(trackedItems.containsKey(product)) {
-            return;
+            unTrack(product);
         }
 
         LOG.info("Tracking new product: {} ", product);
@@ -54,7 +55,7 @@ public class ScraperService extends Service {
         trackedItems.put(product, future);
     }
 
-    public void unTrack(Product product) {
+    public void unTrack(ProductInfoDto product) {
         if(!trackedItems.containsKey(product)) {
             return;
         }
@@ -64,15 +65,15 @@ public class ScraperService extends Service {
         future.cancel(true);
     }
 
-    public void updatePrice(final Product product) {
+    public void updatePrice(final ProductInfoDto product) {
         executor.submit(new PriceUpdater(this, product));
     }
 
-    public Map<Product, ScheduledFuture> getTrackedItems() {
+    public Map<ProductInfoDto, ScheduledFuture> getTrackedItems() {
         return Collections.unmodifiableMap(trackedItems);
     }
 
-    public void sendNotification(Product product, String newPrice) {
+    public void sendNotification(ProductInfoDto product, String newPrice) {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
         notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
         notificationBuilder.setContentTitle("New Price!");
@@ -81,7 +82,7 @@ public class ScraperService extends Service {
         notificationBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
 
         Intent resultIntent = new Intent(this, ProductActivity.class);
-        resultIntent.putExtra("PRODUCT_ID", product.getId());
+        resultIntent.putExtra("PRODUCT_ID", product.getProductId());
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         // Adds the back stack for the Intent (but not the Intent itself)

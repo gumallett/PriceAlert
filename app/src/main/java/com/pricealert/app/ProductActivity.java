@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import com.pricealert.app.service.ScraperService;
 import com.pricealert.data.RecentPricesDb;
+import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public class ProductActivity extends ActionBarActivity {
 
     private boolean mBound = false;
     private ScraperService scraperService;
+    private final DecimalFormat targetPriceFmt = new DecimalFormat("#,##0.00");
 
     private final ServiceConnection mConnection = new ServiceConnection() {
 
@@ -179,7 +181,7 @@ public class ProductActivity extends ActionBarActivity {
 
         if(!targetVal.isEmpty()) {
             try {
-                targets.setTargetValue(Double.valueOf(targetVal));
+                targets.setTargetValue(targetPriceFmt.parse(targetVal).doubleValue());
             }
             catch(Exception e) {
                 LOG.error("Error parsing value: ", e);
@@ -208,7 +210,7 @@ public class ProductActivity extends ActionBarActivity {
         }
 
         if(product.getId() != null && product.getUrl() != null && mBound) {
-            scraperService.track(product);
+            scraperService.track(ProductInfoDto.fromProduct(product));
         }
     }
 
@@ -220,7 +222,7 @@ public class ProductActivity extends ActionBarActivity {
         Product product = new Product();
         product.setId(productId);
 
-        scraperService.unTrack(product);
+        scraperService.unTrack(ProductInfoDto.fromProduct(product));
 
         RecentPricesDb db = new RecentPricesDb(this);
         db.deleteProduct(product);
@@ -249,9 +251,8 @@ public class ProductActivity extends ActionBarActivity {
                 priceView.setText(String.valueOf(product.getMostRecentPrice().getPrice()));
 
                 if(product.getTargets().getTargetValue() != null) {
-                    DecimalFormat format = new DecimalFormat("#,##0.00");
                     EditText targetText = (EditText) findViewById(R.id.productTargetPrice);
-                    targetText.setText(format.format(product.getTargets().getTargetValue()));
+                    targetText.setText(targetPriceFmt.format(product.getTargets().getTargetValue()));
                 }
 
                 if(product.getTargets().getTargetPercent() != null) {
@@ -276,7 +277,7 @@ public class ProductActivity extends ActionBarActivity {
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                view.setBackgroundColor((Integer)animation.getAnimatedValue());
+                view.setBackgroundColor((Integer) animation.getAnimatedValue());
             }
         });
 

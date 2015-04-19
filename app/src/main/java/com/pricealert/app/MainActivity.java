@@ -16,6 +16,7 @@ import android.widget.ListView;
 import com.pricealert.app.service.ScraperService;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.adapter.ProductListAdapter;
+import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
 import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
@@ -161,7 +162,7 @@ public class MainActivity extends ActionBarActivity {
 
             recentPricesDb.saveProduct(product);
 
-            scraperService.updatePrice(product);
+            scraperService.updatePrice(ProductInfoDto.fromProduct(product));
         }
     }
 

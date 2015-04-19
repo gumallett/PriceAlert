@@ -1,7 +1,7 @@
 package com.pricealert.app.service;
 
 import com.pricealert.data.RecentPricesDb;
-import com.pricealert.data.model.Product;
+import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.ProductPriceHistory;
 import com.pricealert.scraping.yql.YQLTemplate;
 import com.pricealert.scraping.yql.model.YQLCSSQuery;
@@ -18,9 +18,9 @@ public final class PriceUpdater implements Runnable {
 
     private final ScraperService context;
     private final YQLTemplate template;
-    private final Product product;
+    private final ProductInfoDto product;
 
-    public PriceUpdater(ScraperService context, Product product) {
+    public PriceUpdater(ScraperService context, ProductInfoDto product) {
         this.context = context;
         this.template = context.getYqlTemplate();
         this.product = product;
@@ -40,12 +40,11 @@ public final class PriceUpdater implements Runnable {
 
             try {
                 ProductPriceHistory priceHistory = new ProductPriceHistory();
-                priceHistory.setProductId(product.getId());
+                priceHistory.setProductId(product.getProductId());
                 priceHistory.setDate(new Date(System.currentTimeMillis()));
 
                 DecimalFormat format = new DecimalFormat("$#,##0.00");
                 priceHistory.setPrice(format.parse(price).doubleValue());
-                product.getPriceHistory().add(priceHistory);
 
                 RecentPricesDb db = new RecentPricesDb(context);
                 db.newHistory(priceHistory);
