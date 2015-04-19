@@ -1,12 +1,14 @@
 package com.pricealert.app;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -166,6 +168,10 @@ public class ProductActivity extends ActionBarActivity {
         product.setUrl(urlText.getText().toString());
         product.setName(nameText.getText().toString());
 
+        if(product.getName().isEmpty()) {
+            product.setName("Not Named");
+        }
+
         ProductTarget targets = new ProductTarget();
         EditText targetText = (EditText) findViewById(R.id.productTargetPrice);
         EditText targetPctText = (EditText) findViewById(R.id.productTargetPct);
@@ -261,5 +267,19 @@ public class ProductActivity extends ActionBarActivity {
                 deleteBtn.setEnabled(false);
             }
         }
+    }
+
+    private void flashView(final View view) {
+        ValueAnimator anim = ValueAnimator.ofObject(new ArgbEvaluator(), 0xff52ffde, 0x0052ffde);
+        anim.setDuration(3000);
+
+        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                view.setBackgroundColor((Integer)animation.getAnimatedValue());
+            }
+        });
+
+        anim.start();
     }
 }
