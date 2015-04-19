@@ -55,7 +55,7 @@ public class YQueryResponse {
             this.results = results;
         }
 
-        public String getText(String id) {
+        public String getText(String... ids) {
             if(results == null) {
                 return null;
             }
@@ -72,21 +72,25 @@ public class YQueryResponse {
 
                     List<JsonNode> idNodes = node.findParents("id");
                     for(JsonNode idNode : idNodes) {
-                        if(id.equals(idNode.get("id").asText())) {
-                            return idNode.findValue("content").asText();
+                        for(String id : ids) {
+                            if(id.equals(idNode.get("id").asText())) {
+                                return idNode.findValue("content").asText();
+                            }
                         }
                     }
                 }
             }
 
-            return textHelper(id, results);
+            return textHelper(results, ids);
         }
 
-        private String textHelper(String id, JsonNode node) {
+        private String textHelper(JsonNode node, String... ids) {
             List<JsonNode> idNodes = node.findParents("id");
             for(JsonNode idNode : idNodes) {
-                if(id.equals(idNode.get("id").asText())) {
-                    return idNode.findValue("content").asText();
+                for(String id : ids) {
+                    if(id.equals(idNode.get("id").asText())) {
+                        return idNode.findValue("content").asText();
+                    }
                 }
             }
 
