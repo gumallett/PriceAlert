@@ -1,5 +1,6 @@
 package com.pricealert.app.service;
 
+import com.pricealert.app.service.event.PriceEvent;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.ProductPriceHistory;
@@ -48,6 +49,8 @@ public final class PriceUpdater implements Runnable {
 
                 RecentPricesDb db = new RecentPricesDb(context);
                 db.newHistory(priceHistory);
+
+                context.notifyListeners(new PriceEvent(priceHistory.getPrice(), product.getProductId()));
 
                 if(shouldNotify(priceHistory.getPrice())) {
                     LOG.info("New low price detected!");

@@ -8,6 +8,8 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import com.pricealert.app.ProductActivity;
 import com.pricealert.app.R;
+import com.pricealert.app.service.event.PriceEvent;
+import com.pricealert.app.service.event.PriceEventListener;
 import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
 import com.pricealert.scraping.yql.YQLTemplate;
@@ -27,6 +29,7 @@ public final class ScraperService extends Service {
     private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     private final Map<ProductInfoDto, ScheduledFuture> trackedItems = new HashMap<ProductInfoDto, ScheduledFuture>();
+    private final ConcurrentMap<Long, List<PriceEventListener>> listeners = new ConcurrentHashMap<Long, List<PriceEventListener>>();
 
     public ScraperService() {
 
@@ -63,6 +66,35 @@ public final class ScraperService extends Service {
         LOG.info("Untracking product: {} ", product);
         ScheduledFuture future = trackedItems.remove(product);
         future.cancel(true);
+    }
+
+    public void registerPriceUpdateListener(Long productId, PriceEventListener listener) {
+        List<PriceEventListener> listenerList = listeners.get(productId);
+
+        if(listenerList == null) {
+            listenerList = new CopyOnWriteArrayList<PriceEventListener>();
+
+            List<PriceEventListener> list2;
+            if((list2 = listeners.putIfAbsent(productId, listenerList)) != null) {
+                listenerList = list2;
+            }
+        }
+
+        listenerList.add(listener);
+    }
+
+    public void unRegisterPriceUpdateListener(final Long productId) {
+        listeners.remove(productId);
+    }
+
+    public void notifyListeners(PriceEvent event) {
+        List<PriceEventListener> listenerList = listeners.get(event.getProductId());
+
+        if(listenerList != null) {
+            for(PriceEventListener listener : listenerList) {
+                listener.onPriceChange(event);
+            }
+        }
     }
 
     public void updatePrice(final ProductInfoDto product) {

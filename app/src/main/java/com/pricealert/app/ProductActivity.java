@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import com.pricealert.app.service.ScraperService;
+import com.pricealert.app.service.event.PriceViewUpdater;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
@@ -115,6 +116,7 @@ public class ProductActivity extends ActionBarActivity {
         }
 
         saveProduct(null);
+        scraperService.unRegisterPriceUpdateListener(productId);
     }
 
     @Override
@@ -210,6 +212,7 @@ public class ProductActivity extends ActionBarActivity {
         }
 
         if(product.getId() != null && product.getUrl() != null && mBound) {
+            scraperService.registerPriceUpdateListener(product.getId(), new PriceViewUpdater((TextView)findViewById(R.id.lastPriceText)));
             scraperService.track(ProductInfoDto.fromProduct(product));
         }
     }
