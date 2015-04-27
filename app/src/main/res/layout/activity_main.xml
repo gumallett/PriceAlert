@@ -13,7 +13,9 @@
                 tools:context="com.pricealert.app.MainActivity">
 
     <TextView
-            android:text="Welcome to Amazon Price Alert"
+            android:text="@string/priceTitle"
+            android:textSize="21dp"
+            android:id="@+id/priceTile"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"/>

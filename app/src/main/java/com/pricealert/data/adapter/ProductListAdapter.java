@@ -37,6 +37,9 @@ public class ProductListAdapter extends BaseAdapter {
         return getProduct(position).getId();
     }
 
+    //image from amazon
+
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView textView = new TextView(parent.getContext());

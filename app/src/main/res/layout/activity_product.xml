@@ -117,8 +117,7 @@ android:padding="10dp">
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="%"
-            android:id="@+id/textView14"
+        android:id="@+id/textView14"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:paddingLeft="3dp"
