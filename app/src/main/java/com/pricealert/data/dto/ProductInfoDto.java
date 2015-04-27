@@ -10,20 +10,14 @@ public final class ProductInfoDto {
     private final Long productId;
     private final String name;
     private final String url;
-    private final Double price;
 
     private final ProductTargetInfoDto targets;
 
-    public ProductInfoDto(Long productId, String name, String url, Double price, ProductTargetInfoDto targets) {
-        this.price = price;
+    public ProductInfoDto(Long productId, String name, String url, ProductTargetInfoDto targets) {
         this.productId = productId;
         this.name = name;
         this.targets = targets;
         this.url = url;
-    }
-
-    public Double getPrice() {
-        return price;
     }
 
     public Long getProductId() {
@@ -47,7 +41,6 @@ public final class ProductInfoDto {
                 product.getId(),
                 product.getName(),
                 product.getUrl(),
-                product.getMostRecentPrice() == null ? null : product.getMostRecentPrice().getPrice(),
                 ProductTargetInfoDto.fromProductTarget(product.getTargets()));
     }
 
@@ -79,7 +72,6 @@ public final class ProductInfoDto {
         return "ProductInfoDto{" +
                 "name='" + name + '\'' +
                 ", productId=" + productId +
-                ", price=" + price +
                 ", targets=" + targets +
                 '}';
     }
