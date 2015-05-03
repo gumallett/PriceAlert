@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import com.pricealert.data.model.Product;
+import com.pricealert.data.model.ProductImg;
 import com.pricealert.data.model.ProductPriceHistory;
 import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
@@ -23,11 +24,11 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final String DB_NAME = "pricealert";
     private static final int VERSION = 1;
 
-    private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, ph.price as ph_price, ph.update_date as ph_update_date " +
-            "from products p join targets t on t.product_id=p.id left join (select * from price_history order by update_date desc) ph on p.id=ph.product_id ";
+    private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, ph.price as ph_price, ph.update_date as ph_update_date, pimg.img_url as pimg_url, pimg.img as pimg_img " +
+            "from products p join targets t on t.product_id=p.id left join (select * from price_history order by update_date desc) ph on p.id=ph.product_id left join product_img pimg on p.id=pimg.product_id";
 
-    private static final String ALL_PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct " +
-            "from products p join targets t on t.product_id=p.id ";
+    private static final String ALL_PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, pimg.img_url as pimg_url, pimg.img as pimg_img " +
+            "from products p join targets t on t.product_id=p.id left join product_img pimg on p.id=pimg.product_id";
 
     private static final String PRODUCT_DETAILS_QUERY = PRODUCT_DETAILS_SQL + "where p.id=?;";
 
@@ -46,6 +47,7 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE PRODUCTS (ID INTEGER PRIMARY KEY, url TEXT NOT NULL, PRODUCT_NAME TEXT, CREATE_DATE DATETIME NOT NULL);");
         db.execSQL("CREATE TABLE TARGETS (PRODUCT_ID INTEGER NOT NULL, TARGET_VAL DECIMAL(8,2), TARGET_PERCENT INT, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID) ON DELETE CASCADE);");
         db.execSQL("CREATE TABLE PRICE_HISTORY (PRODUCT_ID INTEGER NOT NULL, PRICE DECIMAL(8,2) NOT NULL, UPDATE_DATE DATETIME NOT NULL, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID) ON DELETE CASCADE);");
+        db.execSQL("CREATE TABLE PRODUCT_IMG (PRODUCT_ID INTEGER NOT NULL, IMG_URL TEXT, IMG BLOB, FOREIGN KEY(PRODUCT_ID) REFERENCES PRODUCTS(ID) ON DELETE CASCADE);");
     }
 
     @Override
@@ -175,6 +177,10 @@ public class RecentPricesDb extends SQLiteOpenHelper {
             product.setMostRecentPrice(createProductPriceHistory(cursor));
         }
 
+        if(cursor.getColumnIndex("pimg_product_id") != -1) {
+            product.setProductImg(createProductImg(cursor));
+        }
+
         ProductTarget targets = new ProductTarget();
         targets.setTargetValue(cursor.getDouble(cursor.getColumnIndex("t_target_val")));
         targets.setTargetPercent(cursor.getInt(cursor.getColumnIndex("t_target_pct")));
@@ -190,6 +196,15 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         recentHistory.setPrice(cursor.getDouble(cursor.getColumnIndex("ph_price")));
 
         return recentHistory;
+    }
+
+    private static ProductImg createProductImg(Cursor cursor) {
+        ProductImg img = new ProductImg();
+        img.setProduct_id(cursor.getLong(cursor.getColumnIndex("pimg_product_id")));
+        img.setImgUrl(cursor.getString(cursor.getColumnIndex("pimg_url")));
+        img.setImg(cursor.getBlob(cursor.getColumnIndex("pimg_img")));
+
+        return img;
     }
 
     private Long getLastInsertId() {

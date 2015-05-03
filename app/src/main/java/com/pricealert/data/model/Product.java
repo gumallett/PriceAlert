@@ -15,6 +15,7 @@ public class Product implements Serializable {
     private ProductPriceHistory mostRecentPrice;
     private ProductTarget targets;
     private List<ProductPriceHistory> priceHistory = new ArrayList<ProductPriceHistory>();
+    private ProductImg productImg;
 
     public Date getCreateDate() {
         return createDate;
@@ -72,6 +73,14 @@ public class Product implements Serializable {
         this.targets = targets;
     }
 
+    public ProductImg getProductImg() {
+        return productImg;
+    }
+
+    public void setProductImg(ProductImg productImg) {
+        this.productImg = productImg;
+    }
+
     @Override
     public String toString() {
         return "Product{" +
@@ -82,6 +91,7 @@ public class Product implements Serializable {
                 ", mostRecentPrice=" + mostRecentPrice +
                 ", targets=" + targets +
                 ", priceHistory=" + priceHistory +
+                ", productImg=" + productImg +
                 '}';
     }
 }
