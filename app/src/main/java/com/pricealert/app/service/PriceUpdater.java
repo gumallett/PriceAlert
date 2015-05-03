@@ -31,10 +31,10 @@ public final class PriceUpdater implements Runnable {
     public void run() {
         YQLCSSQuery yqlcssQuery = new YQLCSSQuery();
         yqlcssQuery.setUrl(product.getUrl());
-        yqlcssQuery.setCssSelector(Arrays.asList("#priceblock_ourprice", "#priceblock_saleprice"));
+        yqlcssQuery.setCssSelector(Arrays.asList("#priceblock_ourprice", "#priceblock_saleprice", "#buyingPriceValue"));
 
         YQLResponse response = template.cssQuery(yqlcssQuery);
-        final String price = response.getQuery().getResults().getText("priceblock_ourprice", "priceblock_saleprice");
+        final String price = response.getQuery().getResults().getText("priceblock_ourprice", "priceblock_saleprice", "buyingPriceValue");
 
         if(price != null) {
             LOG.info("Price found: {}", price);
