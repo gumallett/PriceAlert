@@ -24,6 +24,7 @@
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/mybutton"
                 android:text="Test Notification"
                 android:id="@+id/testBtn"
                 android:onClick="testService"
@@ -35,6 +36,7 @@
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/mybutton"
                 android:text="Track New"
                 android:id="@+id/addProductBtn"
                 android:layout_centerHorizontal="true" android:onClick="trackOnClick"/>
