@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -15,16 +16,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.pricealert.app.service.ScraperService;
 import com.pricealert.app.service.event.PriceViewUpdater;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
+import com.pricealert.data.model.ProductImg;
 import com.pricealert.data.model.ProductTarget;
+import com.pricealert.scraping.yql.YQLTemplate;
+import com.pricealert.scraping.yql.model.YQLCSSQuery;
+import com.pricealert.scraping.yql.model.YQLResponse;
+import com.pricealert.scraping.yql.model.YQueryResponse;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 
 public class ProductActivity extends ActionBarActivity {
@@ -273,17 +284,43 @@ public class ProductActivity extends ActionBarActivity {
         }
     }
 
-    private void flashView(final View view) {
-        ValueAnimator anim = ValueAnimator.ofObject(new ArgbEvaluator(), 0xff52ffde, 0x0052ffde);
-        anim.setDuration(3000);
+    private void loadProductImage() {
 
-        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                view.setBackgroundColor((Integer) animation.getAnimatedValue());
+    }
+
+    private static byte[] downloadImg(String url) {
+
+    }
+
+    private class ProductImageTask extends AsyncTask<URL, Integer, byte[]> {
+
+        @Override
+        protected byte[] doInBackground(URL... params) {
+            final Long theProductId = productId;
+            YQLTemplate template = scraperService.getYqlTemplate();
+            YQLCSSQuery query = new YQLCSSQuery();
+            query.setCssSelector(Arrays.asList("#thumbs-image img", "#imageBlock img"));
+            YQLResponse response = template.cssQuery(query);
+
+            YQueryResponse.YQueryResultsContainer resultsContainer = response.getQuery().getResults();
+            if(resultsContainer != null) {
+                JsonNode imgNode = resultsContainer.getResults().get("img");
+                if(imgNode.isArray()) {
+                    String imgUrl = imgNode.get(0).get("src").asText();
+                    LOG.info("Found image for {}, {}.", theProductId, imgUrl);
+                    byte[] img = downloadImg(imgUrl);
+
+                    RecentPricesDb db = new RecentPricesDb(ProductActivity.this);
+                    ProductImg productImg = new ProductImg();
+                    productImg.setProduct_id(theProductId);
+                    productImg.setImgUrl(imgUrl);
+                    productImg.setImg(img);
+                    db.saveProductImage(productImg);
+                    return img;
+                }
             }
-        });
 
-        anim.start();
+            return null;
+        }
     }
 }

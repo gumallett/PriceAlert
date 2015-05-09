@@ -36,6 +36,8 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final String PRODUCT_TARGETS_INSERT_SQL = "insert into targets (product_id, target_val, target_percent) values (?, ?, ?);";
     private static final String PRODUCT_HISTORY_INSERT_SQL = "insert into price_history (product_id, price, update_date) values (?, ?, ?);";
 
+    private static final String PRODUCT_IMAGE_INSERT_SQL = "insert into product_img (product_id, img_url, img) values (?, ?, ?);";
+
     private static final String DELETE_PRODUCT_SQL = "delete from products where id=?";
 
     public RecentPricesDb(Context context) {
@@ -122,6 +124,24 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         }
         catch(Exception e) {
             LOG.error("Error saving product: ", e);
+        }
+
+        sqLiteDatabase.endTransaction();
+        sqLiteDatabase.close();
+    }
+
+    public void saveProductImage(ProductImg img) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+
+        sqLiteDatabase.beginTransaction();
+        LOG.info("Saving product image {}", img);
+
+        try {
+            sqLiteDatabase.execSQL(PRODUCT_IMAGE_INSERT_SQL, new Object[]{img.getProduct_id(), img.getImgUrl(), img.getImg()});
+            sqLiteDatabase.setTransactionSuccessful();
+        }
+        catch(Exception e) {
+            LOG.error("Error saving product image: ", e);
         }
 
         sqLiteDatabase.endTransaction();
