@@ -17,6 +17,7 @@ repositories {
 }
 
 dependencies {
+    compile 'org.jsoup:jsoup:1.8.1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
     compile 'org.slf4j:slf4j-api:1.7.10'
     testCompile 'org.slf4j:slf4j-simple:1.7.10'

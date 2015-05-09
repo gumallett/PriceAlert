@@ -29,42 +29,58 @@ public final class PriceUpdater implements Runnable {
 
     @Override
     public void run() {
-        YQLCSSQuery yqlcssQuery = new YQLCSSQuery();
-        yqlcssQuery.setUrl(product.getUrl());
-        yqlcssQuery.setCssSelector(Arrays.asList("#priceblock_ourprice", "#priceblock_saleprice", "#buyingPriceValue", "#actualPriceValue"));
+        for(int i = 0; i < 5; i++) {
+            if(Thread.currentThread().isInterrupted()) {
+                return;
+            }
 
-        YQLResponse response = template.cssQuery(yqlcssQuery);
-        final String price = response.getQuery().getResults().getText("priceblock_ourprice", "priceblock_saleprice", "buyingPriceValue", "actualPriceValue");
+            YQLCSSQuery yqlcssQuery = new YQLCSSQuery();
+            yqlcssQuery.setUrl(product.getUrl());
+            yqlcssQuery.setCssSelector(Arrays.asList("#priceblock_ourprice", "#priceblock_saleprice", "#buyingPriceValue", "#actualPriceValue"));
 
-        if(price != null) {
-            LOG.info("Price found: {}", price);
+            YQLResponse response = template.cssQuery(yqlcssQuery);
+            final String price = response.getQuery().getResults().getText("priceblock_ourprice", "priceblock_saleprice", "buyingPriceValue", "actualPriceValue");
+
+            if(price != null) {
+                LOG.info("Price found: {}", price);
+
+                try {
+                    ProductPriceHistory priceHistory = new ProductPriceHistory();
+                    priceHistory.setProductId(product.getProductId());
+                    priceHistory.setDate(new Date(System.currentTimeMillis()));
+
+                    DecimalFormat format = new DecimalFormat("$#,##0.00");
+                    priceHistory.setPrice(format.parse(price).doubleValue());
+
+                    RecentPricesDb db = new RecentPricesDb(context);
+                    db.newHistory(priceHistory);
+
+                    context.notifyListeners(new PriceEvent(priceHistory.getPrice(), product.getProductId()));
+
+                    if(shouldNotify(priceHistory.getPrice())) {
+                        LOG.info("New low price detected!");
+                        context.sendNotification(product, price);
+                    }
+                }
+                catch(Exception e) {
+                    LOG.error("Failed to save price: ", e);
+                }
+                
+                return;
+            }
+
+            LOG.info("Price not found for product {}, retrying...", product.getName());
 
             try {
-                ProductPriceHistory priceHistory = new ProductPriceHistory();
-                priceHistory.setProductId(product.getProductId());
-                priceHistory.setDate(new Date(System.currentTimeMillis()));
-
-                DecimalFormat format = new DecimalFormat("$#,##0.00");
-                priceHistory.setPrice(format.parse(price).doubleValue());
-
-                RecentPricesDb db = new RecentPricesDb(context);
-                db.newHistory(priceHistory);
-
-                context.notifyListeners(new PriceEvent(priceHistory.getPrice(), product.getProductId()));
-
-                if(shouldNotify(priceHistory.getPrice())) {
-                    LOG.info("New low price detected!");
-                    context.sendNotification(product, price);
-                }
+                Thread.sleep(5000);
             }
-            catch(Exception e) {
-                LOG.error("Failed to save price: ", e);
+            catch(InterruptedException e) {
+                return;
             }
         }
-        else {
-            LOG.info("Price not found for product {}, retrying...", product.getName());
-            context.quickRetry(this);
-        }
+
+        LOG.warn("Price not found in 5 attempts, retrying in 60 seconds.");
+        context.quickRetry(product, this, 60);
     }
 
     public boolean shouldNotify(Double price) {

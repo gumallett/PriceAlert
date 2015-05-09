@@ -4,6 +4,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -183,6 +185,6 @@ public class MainActivity extends ActionBarActivity {
     private void loadProductList() {
         RecentPricesDb db = new RecentPricesDb(this);
         final ListView productsListView = (ListView) findViewById(R.id.productsList);
-        productsListView.setAdapter(new ProductListAdapter(db.selectProducts()));
+        productsListView.setAdapter(new ProductListAdapter(db.selectProducts(), this));
     }
 }
