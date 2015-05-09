@@ -185,6 +185,6 @@ public class MainActivity extends ActionBarActivity {
     private void loadProductList() {
         RecentPricesDb db = new RecentPricesDb(this);
         final ListView productsListView = (ListView) findViewById(R.id.productsList);
-        productsListView.setAdapter(new ProductListAdapter(db.selectProducts()));
+        productsListView.setAdapter(new ProductListAdapter(db.selectProducts(), this));
     }
 }

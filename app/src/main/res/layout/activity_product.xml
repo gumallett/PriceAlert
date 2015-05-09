@@ -100,7 +100,7 @@ android:padding="10dp">
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/productName"
-            android:inputType="text"
+            android:inputType="textCapWords"
             android:layout_below="@+id/productUrl"
             android:hint="Product Name"/>
 </RelativeLayout>

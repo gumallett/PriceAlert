@@ -271,9 +271,6 @@ public class ProductActivity extends ActionBarActivity {
                     byte[] imageBytes = product.getProductImg().getImg();
                     Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                     imageView.setImageBitmap(imageBitmap);
-
-                    TextView textView = (TextView) findViewById(R.id.textView);
-                    //textView.setCompoundDrawables(new BitmapDrawable(textView.getResources(), BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length)), null, null, null);
                 }
 
                 View deleteBtn = findViewById(R.id.deleteBtn);
