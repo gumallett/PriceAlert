@@ -1,12 +1,12 @@
 package com.pricealert.app;
 
-import android.animation.ArgbEvaluator;
-import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.AsyncTask;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -15,34 +15,26 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.pricealert.app.service.ScraperService;
 import com.pricealert.app.service.event.PriceViewUpdater;
+import com.pricealert.app.service.event.ProductImageViewUpdater;
 import com.pricealert.data.RecentPricesDb;
 import com.pricealert.data.dto.ProductInfoDto;
 import com.pricealert.data.model.Product;
-import com.pricealert.data.model.ProductImg;
 import com.pricealert.data.model.ProductTarget;
-import com.pricealert.scraping.yql.YQLTemplate;
-import com.pricealert.scraping.yql.model.YQLCSSQuery;
-import com.pricealert.scraping.yql.model.YQLResponse;
-import com.pricealert.scraping.yql.model.YQueryResponse;
-import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 
 
 public class ProductActivity extends ActionBarActivity {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProductActivity.class);
 
-    private boolean mBound = false;
+    private volatile boolean mBound = false;
     private ScraperService scraperService;
     private final DecimalFormat targetPriceFmt = new DecimalFormat("#,##0.00");
 
@@ -54,6 +46,11 @@ public class ProductActivity extends ActionBarActivity {
             ScraperService.LocalBinder binder = (ScraperService.LocalBinder) service;
             scraperService = binder.getService();
             mBound = true;
+
+            if(productId != -1) {
+                scraperService.registerProductUpdateListener(productId, new PriceViewUpdater((TextView) findViewById(R.id.lastPriceText)));
+                scraperService.registerProductUpdateListener(productId, new ProductImageViewUpdater((ImageView) findViewById(R.id.productImg)));
+            }
 
             Log.d(MainActivity.class.getSimpleName(), "ScraperService bound.");
         }
@@ -106,36 +103,30 @@ public class ProductActivity extends ActionBarActivity {
         if(!mBound) {
             bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
         }
+
+        loadProduct();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if(!mBound) {
-            bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
-        }
-
-        loadProduct();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         if(mBound) {
-            mBound = false;
-            unbindService(mConnection);
+            cleanup();
         }
 
         saveProduct(null);
-        scraperService.unRegisterPriceUpdateListener(productId);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         if(mBound) {
-            mBound = false;
-            unbindService(mConnection);
+            cleanup();
         }
     }
 
@@ -143,8 +134,7 @@ public class ProductActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
         if(mBound) {
-            mBound = false;
-            unbindService(mConnection);
+            cleanup();
         }
     }
 
@@ -223,8 +213,10 @@ public class ProductActivity extends ActionBarActivity {
         }
 
         if(product.getId() != null && product.getUrl() != null && mBound) {
-            scraperService.registerPriceUpdateListener(product.getId(), new PriceViewUpdater((TextView)findViewById(R.id.lastPriceText)));
-            scraperService.track(ProductInfoDto.fromProduct(product));
+            scraperService.registerProductUpdateListener(product.getId(), new PriceViewUpdater((TextView) findViewById(R.id.lastPriceText)));
+            scraperService.registerProductUpdateListener(product.getId(), new ProductImageViewUpdater((ImageView) findViewById(R.id.productImg)));
+            final ProductInfoDto productInfoDto = ProductInfoDto.fromProduct(product);
+            scraperService.track(productInfoDto);
         }
     }
 
@@ -274,6 +266,16 @@ public class ProductActivity extends ActionBarActivity {
                     targetPctText.setText(String.valueOf(product.getTargets().getTargetPercent()));
                 }
 
+                if(product.getProductImg() != null) {
+                    ImageView imageView = (ImageView) findViewById(R.id.productImg);
+                    byte[] imageBytes = product.getProductImg().getImg();
+                    Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                    imageView.setImageBitmap(imageBitmap);
+
+                    TextView textView = (TextView) findViewById(R.id.textView);
+                    //textView.setCompoundDrawables(new BitmapDrawable(textView.getResources(), BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length)), null, null, null);
+                }
+
                 View deleteBtn = findViewById(R.id.deleteBtn);
                 deleteBtn.setEnabled(true);
             }
@@ -284,43 +286,9 @@ public class ProductActivity extends ActionBarActivity {
         }
     }
 
-    private void loadProductImage() {
-
-    }
-
-    private static byte[] downloadImg(String url) {
-
-    }
-
-    private class ProductImageTask extends AsyncTask<URL, Integer, byte[]> {
-
-        @Override
-        protected byte[] doInBackground(URL... params) {
-            final Long theProductId = productId;
-            YQLTemplate template = scraperService.getYqlTemplate();
-            YQLCSSQuery query = new YQLCSSQuery();
-            query.setCssSelector(Arrays.asList("#thumbs-image img", "#imageBlock img"));
-            YQLResponse response = template.cssQuery(query);
-
-            YQueryResponse.YQueryResultsContainer resultsContainer = response.getQuery().getResults();
-            if(resultsContainer != null) {
-                JsonNode imgNode = resultsContainer.getResults().get("img");
-                if(imgNode.isArray()) {
-                    String imgUrl = imgNode.get(0).get("src").asText();
-                    LOG.info("Found image for {}, {}.", theProductId, imgUrl);
-                    byte[] img = downloadImg(imgUrl);
-
-                    RecentPricesDb db = new RecentPricesDb(ProductActivity.this);
-                    ProductImg productImg = new ProductImg();
-                    productImg.setProduct_id(theProductId);
-                    productImg.setImgUrl(imgUrl);
-                    productImg.setImg(img);
-                    db.saveProductImage(productImg);
-                    return img;
-                }
-            }
-
-            return null;
-        }
+    private void cleanup() {
+        mBound = false;
+        scraperService.unRegisterProductUpdateListener(productId);
+        unbindService(mConnection);
     }
 }

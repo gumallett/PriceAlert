@@ -1,5 +1,7 @@
 package com.pricealert.data.model;
 
+import java.util.Arrays;
+
 public class ProductImg {
 
     private Long product_id;
@@ -28,5 +30,14 @@ public class ProductImg {
 
     public void setProduct_id(Long product_id) {
         this.product_id = product_id;
+    }
+
+    @Override
+    public String toString() {
+        return "ProductImg{" +
+                "img=" + Arrays.toString(img) +
+                ", product_id=" + product_id +
+                ", imgUrl='" + imgUrl + '\'' +
+                '}';
     }
 }

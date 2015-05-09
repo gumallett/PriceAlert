@@ -1,6 +1,6 @@
 package com.pricealert.app.service.event;
 
-public final class PriceEvent {
+public final class PriceEvent implements ProductEvent {
 
     private final Long productId;
     private final Double newPrice;
@@ -14,6 +14,7 @@ public final class PriceEvent {
         return newPrice;
     }
 
+    @Override
     public Long getProductId() {
         return productId;
     }

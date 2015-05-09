@@ -8,10 +8,9 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import com.pricealert.app.ProductActivity;
 import com.pricealert.app.R;
-import com.pricealert.app.service.event.PriceEvent;
-import com.pricealert.app.service.event.PriceEventListener;
+import com.pricealert.app.service.event.ProductEvent;
+import com.pricealert.app.service.event.ProductEventListener;
 import com.pricealert.data.dto.ProductInfoDto;
-import com.pricealert.data.model.Product;
 import com.pricealert.scraping.yql.YQLTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +25,10 @@ public final class ScraperService extends Service {
     private final LocalBinder binder = new LocalBinder();
     private final YQLTemplate template = new YQLTemplate();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(2);
 
     private final Map<ProductInfoDto, ScheduledFuture> trackedItems = new HashMap<ProductInfoDto, ScheduledFuture>();
-    private final ConcurrentMap<Long, List<PriceEventListener>> listeners = new ConcurrentHashMap<Long, List<PriceEventListener>>();
+    private final ConcurrentMap<Long, List<ProductEventListener>> listeners = new ConcurrentHashMap<Long, List<ProductEventListener>>();
 
     public ScraperService() {
 
@@ -47,34 +46,45 @@ public final class ScraperService extends Service {
     }
 
     public void track(ProductInfoDto product) {
-        if(trackedItems.containsKey(product)) {
-            unTrack(product);
-        }
-
         LOG.info("Tracking new product: {} ", product);
 
-        PriceUpdater priceUpdater = new PriceUpdater(this, product);
-        ScheduledFuture future = scheduledExecutor.scheduleAtFixedRate(priceUpdater, 0, 10, TimeUnit.MINUTES);
-        trackedItems.put(product, future);
+        synchronized(this) {
+            if(trackedItems.containsKey(product)) {
+                ScheduledFuture future = trackedItems.remove(product);
+                future.cancel(true);
+            }
+
+            ProductUpdater priceUpdater = new ProductUpdater(product, this);
+            ScheduledFuture future = scheduledExecutor.scheduleAtFixedRate(priceUpdater, 0, 10, TimeUnit.MINUTES);
+            trackedItems.put(product, future);
+        }
     }
 
     public void unTrack(ProductInfoDto product) {
-        if(!trackedItems.containsKey(product)) {
-            return;
-        }
-
         LOG.info("Untracking product: {} ", product);
-        ScheduledFuture future = trackedItems.remove(product);
-        future.cancel(true);
+
+        synchronized(this) {
+            if(!trackedItems.containsKey(product)) {
+                return;
+            }
+
+            ScheduledFuture future = trackedItems.remove(product);
+            future.cancel(true);
+        }
     }
 
-    public void registerPriceUpdateListener(Long productId, PriceEventListener listener) {
-        List<PriceEventListener> listenerList = listeners.get(productId);
+    public void updateImages(ProductInfoDto product) {
+        ImageUpdater imageUpdater = new ImageUpdater(product, this);
+        scheduledExecutor.schedule(imageUpdater, 0, TimeUnit.SECONDS);
+    }
+
+    public void registerProductUpdateListener(Long productId, ProductEventListener listener) {
+        List<ProductEventListener> listenerList = listeners.get(productId);
 
         if(listenerList == null) {
-            listenerList = new CopyOnWriteArrayList<PriceEventListener>();
+            listenerList = new CopyOnWriteArrayList<ProductEventListener>();
 
-            List<PriceEventListener> list2;
+            List<ProductEventListener> list2;
             if((list2 = listeners.putIfAbsent(productId, listenerList)) != null) {
                 listenerList = list2;
             }
@@ -83,26 +93,22 @@ public final class ScraperService extends Service {
         listenerList.add(listener);
     }
 
-    public void unRegisterPriceUpdateListener(final Long productId) {
+    public void unRegisterProductUpdateListener(final Long productId) {
         listeners.remove(productId);
     }
 
-    public void notifyListeners(PriceEvent event) {
-        List<PriceEventListener> listenerList = listeners.get(event.getProductId());
+    public void notifyListeners(ProductEvent event) {
+        List<ProductEventListener> listenerList = listeners.get(event.getProductId());
 
         if(listenerList != null) {
-            for(PriceEventListener listener : listenerList) {
-                listener.onPriceChange(event);
+            for(ProductEventListener listener : listenerList) {
+                listener.onChange(event);
             }
         }
     }
 
     public void updatePrice(final ProductInfoDto product) {
         executor.submit(new PriceUpdater(this, product));
-    }
-
-    public Map<ProductInfoDto, ScheduledFuture> getTrackedItems() {
-        return Collections.unmodifiableMap(trackedItems);
     }
 
     public void sendNotification(ProductInfoDto product, String newPrice) {
@@ -133,8 +139,9 @@ public final class ScraperService extends Service {
         return template;
     }
 
-    void quickRetry(PriceUpdater updater) {
-        scheduledExecutor.schedule(updater, 5, TimeUnit.SECONDS);
+    synchronized void quickRetry(ProductInfoDto product, Runnable updater, int seconds) {
+        ScheduledFuture future = scheduledExecutor.schedule(updater, seconds, TimeUnit.SECONDS);
+        trackedItems.put(product, future);
     }
 
     public class LocalBinder extends Binder {
