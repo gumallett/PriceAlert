@@ -3,7 +3,10 @@
 
     <string name="app_name">Price Alert</string>
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Settings What</string>
+    <string name="menu_item2">Amazon link</string>
+
+
     <string name="priceTitle">Welcome to Price Alert the Best in Savings</string>
     <string name="product_page_save_text">If you buy now, you will save ${amount} off the last recorded price.</string>
     <string name="title_activity_product">ProductActivity</string>
