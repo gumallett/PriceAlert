@@ -1,12 +1,10 @@
 package com.pricealert.app;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.*;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
@@ -28,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 
 
 public class ProductActivity extends ActionBarActivity {
@@ -256,6 +255,10 @@ public class ProductActivity extends ActionBarActivity {
                 TextView priceView = (TextView) findViewById(R.id.lastPriceText);
                 priceView.setText(String.valueOf(product.getMostRecentPrice().getPrice()));
 
+                TextView lastUpdatedView = (TextView) findViewById(R.id.lastPriceUpdateText);
+                SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                lastUpdatedView.setText(sdf.format(product.getMostRecentPrice().getDate()));
+
                 if(product.getTargets().getTargetValue() != null) {
                     EditText targetText = (EditText) findViewById(R.id.productTargetPrice);
                     targetText.setText(targetPriceFmt.format(product.getTargets().getTargetValue()));
@@ -266,7 +269,7 @@ public class ProductActivity extends ActionBarActivity {
                     targetPctText.setText(String.valueOf(product.getTargets().getTargetPercent()));
                 }
 
-                if(product.getProductImg() != null) {
+                if(product.getProductImg() != null && product.getProductImg().getImg() != null) {
                     ImageView imageView = (ImageView) findViewById(R.id.productImg);
                     byte[] imageBytes = product.getProductImg().getImg();
                     Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
@@ -280,6 +283,24 @@ public class ProductActivity extends ActionBarActivity {
                 View deleteBtn = findViewById(R.id.deleteBtn);
                 deleteBtn.setEnabled(false);
             }
+        }
+    }
+
+    public void onPaste(View view) {
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        if(clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
+            TextView urlText = (TextView) findViewById(R.id.productUrl);
+            urlText.setText(clipboardManager.getPrimaryClip().getItemAt(0).getText());
+        }
+    }
+
+    public void onAmazon(View view) {
+        TextView urlText = (TextView) findViewById(R.id.productUrl);
+        CharSequence url = urlText.getText();
+
+        if(url != null && url.length() > 0) {
+            Intent startBrowser = new Intent(Intent.ACTION_VIEW, Uri.parse(url.toString()));
+            startActivity(startBrowser);
         }
     }
 

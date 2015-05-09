@@ -56,10 +56,12 @@ public class ProductListAdapter extends BaseAdapter {
         Product product = getProduct(position);
         textView.setText(product.getName());
 
-        ImageView imageView = (ImageView) view.findViewById(R.id.productListItemImg);
-        byte[] imageBytes = product.getProductImg().getImg();
-        Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-        imageView.setImageBitmap(imageBitmap);
+        if(product.getProductImg() != null && product.getProductImg().getImg() != null) {
+            ImageView imageView = (ImageView) view.findViewById(R.id.productListItemImg);
+            byte[] imageBytes = product.getProductImg().getImg();
+            Bitmap imageBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+            imageView.setImageBitmap(imageBitmap);
+        }
 
         return view;
     }

@@ -42,7 +42,7 @@ android:padding="10dp">
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Last low price was on: "
+            android:text="Price last updated: "
             android:id="@+id/textView3"
             android:layout_below="@id/textView"
             android:layout_alignParentLeft="true"
@@ -88,21 +88,44 @@ android:padding="10dp">
     <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/productUrl"
-            android:layout_alignParentLeft="true"
-            android:inputType="textUri"
-            android:hint="Product Url"
-            android:layout_below="@id/textView6" android:maxLines="3" android:lines="3"
-            android:minLines="3" android:textIsSelectable="true"/>
-
+            android:id="@+id/productName"
+            android:inputType="textCapWords"
+            android:layout_below="@+id/textView6"
+            android:hint="Product Name"/>
 
     <EditText
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/productName"
-            android:inputType="textCapWords"
-            android:layout_below="@+id/productUrl"
-            android:hint="Product Name"/>
+            android:id="@+id/productUrl"
+            android:layout_alignParentLeft="true"
+            android:inputType="textUri"
+            android:hint="Product Url"
+            android:layout_below="@id/productName" android:maxLines="3" android:lines="3"
+            android:minLines="3" android:textIsSelectable="true"/>
+
+    <Button android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/productUrl"
+            android:text="Paste Url"
+            android:background="@drawable/buttonshape_blue"
+            android:textColor="#FFFFFF"
+            android:id="@+id/pasteBtn"
+            android:onClick="onPaste"/>
+
+    <Button android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/pasteBtn"
+            android:layout_toEndOf="@id/pasteBtn"
+            android:layout_below="@id/productUrl"
+            android:text="Go to Amazon"
+            android:background="@drawable/buttonshape_green"
+            android:textColor="#FFFFFF"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:id="@+id/amaBtn"
+            android:onClick="onAmazon"/>
+
+
 </RelativeLayout>
 
 <RelativeLayout
@@ -141,7 +164,7 @@ android:padding="10dp">
             android:gravity="end"
             android:layout_toStartOf="@id/textView14"
             android:layout_toLeftOf="@id/textView14"
-            android:layout_below="@id/textView5"/>
+            android:layout_below="@id/textView5" android:visibility="gone"/>
 
     <EditText
             android:layout_width="wrap_content"
