@@ -291,6 +291,7 @@ public class ProductActivity extends ActionBarActivity {
         if(clipboardManager.hasPrimaryClip() && clipboardManager.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
             TextView urlText = (TextView) findViewById(R.id.productUrl);
             urlText.setText(clipboardManager.getPrimaryClip().getItemAt(0).getText());
+            urlText.requestFocus();
         }
     }
 
