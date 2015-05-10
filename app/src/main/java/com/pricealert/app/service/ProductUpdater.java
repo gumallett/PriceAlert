@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Date;
@@ -47,6 +48,9 @@ public class ProductUpdater implements Runnable {
                 LOG.info("Found image for {}, {}.", product.getProductId(), imgUrl);
                 updateImage(imgUrl, db);
             }
+        }
+        catch(InterruptedIOException iioe) {
+            // swallow
         }
         catch(Exception e) {
             LOG.error("Error updating product: {}, retrying in 60 seconds", product.getProductId(), e);

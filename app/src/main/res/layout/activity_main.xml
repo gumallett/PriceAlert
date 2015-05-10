@@ -38,7 +38,7 @@
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/buttonshape"
+                android:background="@drawable/buttonshape_blue"
                 android:textColor="#FFFFFF"
                 android:textSize="18sp"
                 android:text="Track New"

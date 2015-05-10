@@ -61,6 +61,15 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+
+        if(!db.isReadOnly()) {
+            db.execSQL("PRAGMA foreign_keys=ON;");
+        }
+    }
+
     public List<Product> selectProducts() {
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
 

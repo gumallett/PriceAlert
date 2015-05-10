@@ -73,11 +73,6 @@ public final class ScraperService extends Service {
         }
     }
 
-    public void updateImages(ProductInfoDto product) {
-        ImageUpdater imageUpdater = new ImageUpdater(product, this);
-        scheduledExecutor.schedule(imageUpdater, 0, TimeUnit.SECONDS);
-    }
-
     public void registerProductUpdateListener(Long productId, ProductEventListener listener) {
         List<ProductEventListener> listenerList = listeners.get(productId);
 
@@ -108,7 +103,7 @@ public final class ScraperService extends Service {
     }
 
     public void updatePrice(final ProductInfoDto product) {
-        executor.submit(new PriceUpdater(this, product));
+        executor.submit(new ProductUpdater(product, this));
     }
 
     public void sendNotification(ProductInfoDto product, String newPrice) {
