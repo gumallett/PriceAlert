@@ -24,6 +24,7 @@ import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.Random;
 
 public class MainActivity extends ActionBarActivity {
@@ -56,15 +57,6 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final ListView productsListView = (ListView) findViewById(R.id.productsList);
-
-        productsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                startProductActivity(id);
-            }
-        });
-
         LOG.info("MainActivity created...");
     }
 
@@ -74,7 +66,6 @@ public class MainActivity extends ActionBarActivity {
         // Bind to LocalService
         startService(new Intent(this, ScraperService.class));
         bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
-        loadProductList();
 
         LOG.info("MainActivity started...");
     }
@@ -86,6 +77,16 @@ public class MainActivity extends ActionBarActivity {
         if(!mBound) {
             bindService(new Intent(this, ScraperService.class), mConnection, Context.BIND_AUTO_CREATE);
         }
+
+        loadProductList();
+        final ListView productsListView = (ListView) findViewById(R.id.productsList);
+
+        productsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                startProductActivity(id);
+            }
+        });
 
         LOG.info("MainActivity resuming...");
     }
@@ -170,6 +171,18 @@ public class MainActivity extends ActionBarActivity {
 
     public void trackOnClick(View view) {
         startProductActivity(null);
+    }
+
+    public void deleteProduct(View view, Product product) {
+        LOG.info("DELETE CALLED");
+        if(product == null || product.getId() < 0) {
+            return;
+        }
+
+        RecentPricesDb db = new RecentPricesDb(this);
+        db.deleteProduct(product);
+        final ListView productsListView = (ListView) findViewById(R.id.productsList);
+        productsListView.setAdapter(new ProductListAdapter(db.selectProducts(), this));
     }
 
     public void startProductActivity(Long productId) {
