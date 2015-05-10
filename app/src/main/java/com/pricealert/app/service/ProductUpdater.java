@@ -33,6 +33,10 @@ public class ProductUpdater implements Runnable {
 
     @Override
     public void run() {
+        if(product.getUrl() == null || product.getUrl().isEmpty()) {
+            return;
+        }
+
         try {
             AmazonScraperResult scraperResult = AmazonScraper.scrape(product.getUrl());
             String price = scraperResult.getPrice();

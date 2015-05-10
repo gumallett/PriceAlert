@@ -86,6 +86,11 @@ public class RecentPricesDb extends SQLiteOpenHelper {
 
         cursor.close();
         sqLiteDatabase.close();
+
+        for(Product product : productList) {
+            product.setMostRecentPrice(getMostRecentPrice(product.getId()));
+        }
+
         return productList;
     }
 
@@ -114,6 +119,25 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         cursor.close();
         sqLiteDatabase.close();
         return product;
+    }
+
+    public ProductPriceHistory getMostRecentPrice(long id) {
+        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+
+        LOG.info("Querying for product recent price with id {}...", id);
+
+        String sql = "select ph.product_id as p_id, ph.price as ph_price, ph.update_date as ph_update_date from price_history ph where ph.product_id=? order by ph.update_date desc limit 1";
+        Cursor cursor = sqLiteDatabase.rawQuery(sql, new String[] {String.valueOf(id)});
+
+        ProductPriceHistory history = null;
+        if(cursor.moveToNext()) {
+            history = createProductPriceHistory(cursor);
+            LOG.info("Loaded history: {}", history);
+        }
+
+        cursor.close();
+        sqLiteDatabase.close();
+        return history;
     }
 
     public void saveProduct(Product product) {

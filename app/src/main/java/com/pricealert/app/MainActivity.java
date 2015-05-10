@@ -6,14 +6,18 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import com.pricealert.app.service.ScraperService;
 import com.pricealert.data.RecentPricesDb;
@@ -24,6 +28,7 @@ import com.pricealert.data.model.ProductTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -84,9 +89,11 @@ public class MainActivity extends ActionBarActivity {
         productsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                startProductActivity(id);
+                //startProductActivity(id);
             }
         });
+
+        productsListView.setOnTouchListener(new SwipeTouchListener());
 
         LOG.info("MainActivity resuming...");
     }
@@ -199,5 +206,153 @@ public class MainActivity extends ActionBarActivity {
         RecentPricesDb db = new RecentPricesDb(this);
         final ListView productsListView = (ListView) findViewById(R.id.productsList);
         productsListView.setAdapter(new ProductListAdapter(db.selectProducts(), this));
+    }
+
+    public class SwipeTouchListener implements View.OnTouchListener {
+
+        // MINIMUM distance user has to swipe before view is switched
+        private static final int SWIPE_THRESHOLD = 250;
+        // MINIMUM distance user has to swipe on x-axis before swipe animation is shown
+        private static final int MIN_X_THRESHOLD = 45;
+        // MINIMUM distance user has to swipe on y-axis to pass thru (to allow scrolling)
+        private static final int MIN_Y_THRESHOLD = 20;
+
+        private float x;
+        private float y;
+        private float deltaX;
+        private float deltaY;
+        private boolean moving;
+        private View child;
+        private View active;
+        LinearLayout mainView;
+        LinearLayout deleteView;
+        private int childPos;
+
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+            LOG.info("raw X: {}, raw Y: {}", event.getRawX(), event.getRawY());
+            LOG.info("X: {}, Y: {}", event.getX(), event.getY());
+            LOG.info("view: " + view);
+
+            if(view instanceof ListView) {
+                ListView listView = (ListView) view;
+
+                switch (MotionEventCompat.getActionMasked(event)) {
+                    case MotionEvent.ACTION_DOWN:
+                        LOG.info("DOWN");
+                        x = event.getX();
+                        y = event.getY();
+
+                        childPos = getPositionByTouch(listView, event);
+                        child = childPos == ListView.INVALID_POSITION ? null : listView.getChildAt(childPos - listView.getFirstVisiblePosition());
+                        LOG.info("child: {}", child);
+
+                        mainView = child == null ? null : (LinearLayout) child.findViewById(R.id.mainView);
+                        deleteView = child == null ? null : (LinearLayout) child.findViewById(R.id.swipeView);
+                        if(mainView != null) {
+                            active = mainView.getVisibility() == View.VISIBLE ? mainView : deleteView;
+                        }
+
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        LOG.info("UP");
+
+                        // handle clicks
+                        if(child != null && !moving && mainView == active) {
+                            LOG.info("child at {} clicked!", childPos);
+                            startProductActivity(listView.getItemIdAtPosition(childPos));
+                        }
+                        else if(child != null && !moving && deleteView == active) {
+                            LOG.info("child at {} clicked!", childPos);
+                            deleteProduct(child, (Product)listView.getItemAtPosition(childPos));
+                        }
+
+                        // swipe logic begins
+                        deltaX = x - event.getX();
+                        if(mainView != null && deleteView != null && Math.abs(deltaX) > SWIPE_THRESHOLD) {
+                            if(active == mainView) {
+                                switchView(mainView, deleteView);
+                            }
+                            else {
+                                switchView(deleteView, mainView);
+                            }
+                        }
+                        else {
+                            move(active, 0);
+                        }
+
+                        reset();
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        LOG.info("MOVE");
+                        moving = true;
+                        deltaX = x - event.getX();
+                        deltaY = y - event.getY();
+                        LOG.info("deltaX: {}", deltaX);
+                        LOG.info("deltaY: {}", deltaY);
+
+                        if(Math.abs(deltaY) > MIN_Y_THRESHOLD && Math.abs(deltaX) < MIN_X_THRESHOLD) {
+                            move(active, 0);
+                        }
+
+                        if(Math.abs(deltaX) > 30) {
+                            move(active, -deltaX);
+                            return true;
+                        }
+
+                        return false;
+                    case MotionEvent.ACTION_CANCEL:
+                        return false;
+                }
+            }
+
+            return false;
+        }
+
+        private void switchView(View current, View target) {
+            target.setVisibility(View.VISIBLE);
+            current.setVisibility(View.GONE);
+            move(target, 0);
+        }
+
+        private void move(View view, float deltaX) {
+            if(view == null) {
+                return;
+            }
+
+            LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) view.getLayoutParams();
+            params.leftMargin = (int) deltaX;
+            view.setLayoutParams(params);
+        }
+
+        private void reset() {
+            moving = false;
+            deltaX = 0;
+            deltaY = 0;
+            child = null;
+            active = null;
+            mainView = null;
+            deleteView = null;
+            childPos = ListView.INVALID_POSITION;
+        }
+
+        private int getPositionByTouch(ListView listView, MotionEvent event) {
+            int[] listViewCoords = new int[2];
+            listView.getLocationOnScreen(listViewCoords);
+            LOG.info("listView location: {}", listViewCoords);
+
+            int scrollX = listView.getScrollX();
+            int scrollY = listView.getScrollY();
+            LOG.info("scrollX: {}, scrollY: {}", scrollX, scrollY);
+
+            int x = (int) event.getRawX() - listViewCoords[0];
+            int y = (int) event.getRawY() - listViewCoords[1];
+
+            LOG.info("x, y: {} {}", x, y);
+            LOG.info("first visible: {}", listView.getFirstVisiblePosition());
+            int position = listView.pointToPosition((int) event.getX(), (int)event.getY());
+            LOG.info("pointToPosition: {}", position);
+            return position;
+        }
     }
 }
