@@ -35,7 +35,7 @@ public class ProductImg {
     @Override
     public String toString() {
         return "ProductImg{" +
-                "img=" + Arrays.toString(img) +
+                "img=" + img +
                 ", product_id=" + product_id +
                 ", imgUrl='" + imgUrl + '\'' +
                 '}';
