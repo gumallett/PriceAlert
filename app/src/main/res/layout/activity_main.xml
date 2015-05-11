@@ -31,7 +31,7 @@
                 android:id="@+id/testBtn"
                 android:onClick="testService"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp"/>
+                android:layout_marginTop="20dp" android:visibility="gone"/>
     </RelativeLayout>
 
     <RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
