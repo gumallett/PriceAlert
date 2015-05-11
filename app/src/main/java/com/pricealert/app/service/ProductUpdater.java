@@ -63,17 +63,8 @@ public class ProductUpdater implements Runnable {
     }
 
     private boolean shouldNotify(Double price) {
-        Integer targetPercent = product.getTargets().getTargetPercent();
         Double targetValue = product.getTargets().getTargetValue();
-
-        if(targetValue != null && targetPercent != null && targetPercent > 0) {
-            return (targetValue * (double) targetPercent / 100.0) > price;
-        }
-        else if(targetValue != null) {
-            return targetValue > price;
-        }
-
-        return false;
+        return targetValue != null && targetValue >= price;
     }
 
     private void updatePrice(String price, RecentPricesDb db) {
