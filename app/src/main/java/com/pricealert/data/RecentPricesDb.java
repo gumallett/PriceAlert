@@ -25,8 +25,8 @@ public class RecentPricesDb extends SQLiteOpenHelper {
     private static final String DB_NAME = "pricealert";
     private static final int VERSION = 1;
 
-    private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, ph.price as ph_price, ph.update_date as ph_update_date, pimg.product_id as pimg_product_id, pimg.img_url as pimg_url, pimg.img as pimg_img " +
-            "from products p join targets t on t.product_id=p.id left join (select * from price_history order by update_date desc) ph on p.id=ph.product_id left join product_img pimg on p.id=pimg.product_id ";
+    private static final String PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, pimg.product_id as pimg_product_id, pimg.img_url as pimg_url, pimg.img as pimg_img " +
+            "from products p join targets t on t.product_id=p.id left join product_img pimg on p.id=pimg.product_id ";
 
     private static final String ALL_PRODUCT_DETAILS_SQL = "select p.id as p_id, p.url as p_url, p.product_name as p_product_name, p.create_date as p_create_date, t.target_val as t_target_val, t.target_percent as t_target_pct, pimg.img_url as pimg_url, pimg.product_id as pimg_product_id, pimg.img as pimg_img " +
             "from products p join targets t on t.product_id=p.id left join product_img pimg on p.id=pimg.product_id ";
@@ -105,14 +105,8 @@ public class RecentPricesDb extends SQLiteOpenHelper {
         Product product = null;
         if(cursor.moveToNext()) {
             product = createProduct(cursor);
-            List<ProductPriceHistory> history = new ArrayList<ProductPriceHistory>();
-            history.add(product.getMostRecentPrice());
-
-            while(cursor.moveToNext()) {
-                history.add(createProductPriceHistory(cursor));
-            }
-
-            product.setPriceHistory(history);
+            ProductPriceHistory mostRecentPrice = getMostRecentPrice(product.getId());
+            product.setMostRecentPrice(mostRecentPrice);
             LOG.info("Loaded product: {}", product);
         }
 
